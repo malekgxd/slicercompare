@@ -1,0 +1,623 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.3</storyId>
+    <title>Error Handling &amp; User Feedback Enhancement</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-01</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2-3-2025-11-01.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a print farm operator</asA>
+    <iWant>clear error messages and visual feedback for all operations</iWant>
+    <soThat>I can quickly identify and resolve issues without confusion</soThat>
+    <tasks>
+      <!-- Main Tasks with Subtasks -->
+      <task id="1" ac="#3">
+        <title>Implement toast notification system</title>
+        <subtasks>
+          <subtask>Install/configure toast library (react-hot-toast or similar)</subtask>
+          <subtask>Create toast service wrapper</subtask>
+          <subtask>Add success toast helper</subtask>
+          <subtask>Add error toast helper</subtask>
+          <subtask>Add loading toast helper with progress</subtask>
+        </subtasks>
+      </task>
+
+      <task id="2" ac="#4">
+        <title>Enhance file upload error handling</title>
+        <subtasks>
+          <subtask>Add file size validation with specific error message</subtask>
+          <subtask>Add file type validation with supported formats list</subtask>
+          <subtask>Handle upload failures with actionable messages</subtask>
+          <subtask>Show upload progress with percentage</subtask>
+        </subtasks>
+      </task>
+
+      <task id="3" ac="#5">
+        <title>Improve CLI error translation</title>
+        <subtasks>
+          <subtask>Map CLI error codes to user-friendly messages</subtask>
+          <subtask>Add troubleshooting suggestions for common errors</subtask>
+          <subtask>Handle timeout errors with helpful guidance</subtask>
+          <subtask>Handle CLI not found error with installation instructions</subtask>
+        </subtasks>
+      </task>
+
+      <task id="4" ac="#2">
+        <title>Add loading states to all async operations</title>
+        <subtasks>
+          <subtask>Add spinner to file upload component</subtask>
+          <subtask>Add loading state to configuration form submission</subtask>
+          <subtask>Add progress indicator to slicing operations</subtask>
+          <subtask>Add loading overlay to results page</subtask>
+        </subtasks>
+      </task>
+
+      <task id="5" ac="#6">
+        <title>Implement graceful error recovery</title>
+        <subtasks>
+          <subtask>Add retry mechanism for network errors</subtask>
+          <subtask>Add retry mechanism for database errors</subtask>
+          <subtask>Implement exponential backoff for retries</subtask>
+          <subtask>Show retry count and last error to user</subtask>
+        </subtasks>
+      </task>
+
+      <task id="6" ac="#7">
+        <title>Add progress tracking for slicing</title>
+        <subtasks>
+          <subtask>Extract progress from CLI stdout</subtask>
+          <subtask>Update progress indicator in real-time</subtask>
+          <subtask>Show estimated time remaining</subtask>
+          <subtask>Display current/total configurations</subtask>
+        </subtasks>
+      </task>
+
+      <task id="7" ac="#1">
+        <title>Create error boundary components</title>
+        <subtasks>
+          <subtask>Implement React ErrorBoundary wrapper</subtask>
+          <subtask>Create fallback UI for caught errors</subtask>
+          <subtask>Log errors to console with context</subtask>
+          <subtask>Provide "Try Again" option</subtask>
+        </subtasks>
+      </task>
+
+      <task id="8" ac="#1">
+        <title>Add comprehensive error logging</title>
+        <subtasks>
+          <subtask>Enhance logger service with error categorization</subtask>
+          <subtask>Add error context (user action, component, timestamp)</subtask>
+          <subtask>Include stack traces for debugging</subtask>
+          <subtask>Filter sensitive information from logs</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">All error scenarios display user-friendly messages with actionable guidance</criterion>
+    <criterion id="2">Loading states shown for all async operations (file upload, slicing, database queries)</criterion>
+    <criterion id="3">Success/error toast notifications appear for major operations</criterion>
+    <criterion id="4">File upload errors clearly indicate the problem (size, format, permissions)</criterion>
+    <criterion id="5">CLI errors translated from technical to user-friendly messages</criterion>
+    <criterion id="6">Network/database errors handled gracefully with retry options</criterion>
+    <criterion id="7">Progress indicators show percentage completion for long-running operations</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Error Handling Architecture -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Documentation - Error Handling</title>
+        <section>Error Handling (lines 547-680)</section>
+        <snippet>Comprehensive error handling patterns including API error response format (code, message, details), HTTP status codes (400, 422, 500), error code standards (INVALID_FILE, CLI_TIMEOUT, DATABASE_ERROR), user-friendly error messages, error handling middleware, resilience patterns (individual config failures don't stop batch), and structured logging strategy with log levels (info, warn, error).</snippet>
+      </doc>
+
+      <!-- Logging Strategy -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Documentation - Logging Strategy</title>
+        <section>Logging Strategy (lines 625-680)</section>
+        <snippet>Structured logging with LogLevel (info, warn, error), LogEntry interface with context/message/metadata, usage examples for session creation, CLI warnings, and error scenarios. Logger utility provides info(), warn(), and error() methods with JSON output for production.</snippet>
+      </doc>
+
+      <!-- Design System - Notifications and Alerts -->
+      <doc>
+        <path>docs/design-system-guide.md</path>
+        <title>Design System Guide - Alert/Notification Patterns</title>
+        <section>Common Patterns - Alert/Notification Boxes (lines 238-284)</section>
+        <snippet>Semantic color patterns for success (green), error (red), warning (amber), and info (cyan) alerts. Each pattern includes background-color, border, and text color using design tokens. Standard pattern: padding var(--space-4), border-radius var(--radius-lg), semantic background (e.g., var(--color-error-50)), semantic border, semantic text color.</snippet>
+      </doc>
+
+      <!-- Design System - Progress Indicators -->
+      <doc>
+        <path>docs/design-system-guide.md</path>
+        <title>Design System Guide - Progress Bar</title>
+        <section>Common Patterns - Progress Bar (lines 320-337)</section>
+        <snippet>Progress bar pattern with container (full width, var(--progress-height), var(--progress-radius), var(--progress-bg)) and bar (height 100%, var(--progress-fill), transition width var(--transition-slow)). Supports determinate progress indicators.</snippet>
+      </doc>
+
+      <!-- Design System - Status Badges -->
+      <doc>
+        <path>docs/design-system-guide.md</path>
+        <title>Design System Guide - Status Badges</title>
+        <section>Common Patterns - Status Badges (lines 286-318)</section>
+        <snippet>Badge patterns for success, error, warning, and info states. Each badge uses semantic colors (e.g., badge-error: background var(--color-error-100), color var(--color-error-700)), var(--badge-padding), var(--badge-radius), var(--badge-font-size).</snippet>
+      </doc>
+
+      <!-- Epic 2 Story 2.3 Requirements -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 2 - Story 2.3 Requirements</title>
+        <section>Story 2.3: Enhanced Progress &amp; Error Handling (lines 256-270)</section>
+        <snippet>Requirements for progress display (current step, real-time percentage), user-friendly error messages (not raw CLI errors), recovery guidance for common errors, failed config marking with error icon/message, retry options, and resilience (successful configs proceed even if others fail).</snippet>
+      </doc>
+
+      <!-- Architecture - CLI Integration Pattern -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Documentation - CLI Integration</title>
+        <section>CLI Integration Pattern (lines 200-297)</section>
+        <snippet>CLI invocation using child_process.spawn(), stdout/stderr capture for progress and error handling, 5-minute timeout per operation, error handling for CLI exit codes and spawn failures. Example shows error object structure with success boolean, gcodeFile path, and error message.</snippet>
+      </doc>
+
+      <!-- Architecture - Batch Processing Pattern -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture Documentation - Batch Slicing Pattern</title>
+        <section>Batch Slicing Engine (lines 341-367)</section>
+        <snippet>Batch processing pattern where individual config failures don't stop other configs. Failed configs marked in database with processing_status: 'failed' and error_message. Try-catch wraps each config processing, logs errors, updates DB with failure state.</snippet>
+      </doc>
+
+      <!-- Story 2.1 Context (Related Story) -->
+      <doc>
+        <path>docs/stories/2-1-full-bambu-slicer-parameter-exposure.context.xml</path>
+        <title>Story 2.1 Context - Parameter Validation</title>
+        <section>Constraints and Interfaces</section>
+        <snippet>Story 2.1 implemented comprehensive parameter validation rules. Story 2.3 should reuse validation patterns and extend error messaging for client-side validation failures.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- Existing Logger Utility -->
+      <artifact>
+        <path>src/server/utils/logger.ts</path>
+        <kind>service</kind>
+        <symbol>Logger</symbol>
+        <lines>1-56</lines>
+        <reason>Existing logger service that Story 2.3 should enhance with error categorization and additional context. Provides structured logging with info(), warn(), error() methods and JSON output.</reason>
+      </artifact>
+
+      <!-- Error Handling Example - Upload Route -->
+      <artifact>
+        <path>src/server/routes/upload.ts</path>
+        <kind>route</kind>
+        <symbol>router.post('/upload')</symbol>
+        <lines>28-151</lines>
+        <reason>Demonstrates existing error handling patterns including ApiError response format (code, message), HTTP status codes (400, 500, 413), multer error handling, and cleanup on failure. Story 2.3 should standardize this pattern across all routes.</reason>
+      </artifact>
+
+      <!-- Loading States Example - FileUpload Component -->
+      <artifact>
+        <path>src/client/components/FileUpload.tsx</path>
+        <kind>component</kind>
+        <symbol>FileUpload</symbol>
+        <lines>1-240</lines>
+        <reason>Demonstrates existing loading state patterns (isUploading state, spinner animation), error display (alert-error styling), and success feedback. Story 2.3 should extract these patterns into reusable components (LoadingSpinner, ErrorAlert, SuccessAlert).</reason>
+      </artifact>
+
+      <!-- Batch Error Resilience - Slicing Batch Service -->
+      <artifact>
+        <path>src/server/services/slicing-batch.ts</path>
+        <kind>service</kind>
+        <symbol>batchSliceConfigurations</symbol>
+        <lines>81-100</lines>
+        <reason>Demonstrates resilience pattern where individual config failures don't stop batch processing. Uses Promise.allSettled and database status tracking. Story 2.3 should enhance error messages and add retry mechanism.</reason>
+      </artifact>
+
+      <!-- CLI Error Handling - Bambu CLI Service -->
+      <artifact>
+        <path>src/server/services/bambu-cli.ts</path>
+        <kind>service</kind>
+        <symbol>invokeBambuSlicer</symbol>
+        <lines>1-80</lines>
+        <reason>CLI integration with spawn(), timeout handling, and error capture. Story 2.3 should add error translation layer to convert technical CLI errors to user-friendly messages with recovery guidance.</reason>
+      </artifact>
+
+      <!-- Client-Side Validation - Story 2.1 -->
+      <artifact>
+        <path>src/client/utils/validation.ts</path>
+        <kind>utility</kind>
+        <symbol>VALIDATION_RULES</symbol>
+        <lines>entire file</lines>
+        <reason>Story 2.1 implemented comprehensive parameter validation. Story 2.3 should ensure validation error messages are clear and actionable, and displayed via toast notifications.</reason>
+      </artifact>
+
+      <!-- Configuration Form - Story 2.1 -->
+      <artifact>
+        <path>src/client/components/ConfigurationForm.tsx</path>
+        <kind>component</kind>
+        <symbol>ConfigurationForm</symbol>
+        <lines>entire file</lines>
+        <reason>Large form with validation. Story 2.3 should add loading states to form submission and display validation errors via toast notifications.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <!-- Node/NPM Dependencies -->
+      <ecosystem name="npm">
+        <package name="react" version="^19.1.1" usage="React error boundaries, useState for loading states"/>
+        <package name="react-hot-toast" version="to be installed" usage="Toast notification system for success/error/loading messages"/>
+        <package name="express" version="^5.1.0" usage="Backend error handling middleware"/>
+        <package name="multer" version="^1.4.5-lts.1" usage="File upload error handling"/>
+        <package name="p-limit" version="^6.1.0" usage="Concurrency control for batch operations"/>
+      </ecosystem>
+
+      <!-- Design System -->
+      <design-tokens>
+        <token name="--color-error-*" usage="Error alerts, error text, error borders"/>
+        <token name="--color-success-*" usage="Success alerts, success messages"/>
+        <token name="--color-warning-*" usage="Warning alerts"/>
+        <token name="--color-info-*" usage="Info alerts"/>
+        <token name="--progress-*" usage="Progress bars"/>
+        <token name="--badge-*" usage="Status badges"/>
+      </design-tokens>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <!-- API Error Response Format -->
+    <constraint type="interface-contract">
+      All API error responses MUST use standardized ApiError format:
+      { error: { code: string, message: string, details?: string } }
+      HTTP status codes: 400 (bad request), 422 (validation), 500 (server error), 413 (file too large)
+    </constraint>
+
+    <!-- Error Code Standards -->
+    <constraint type="naming-convention">
+      Error codes MUST be SCREAMING_SNAKE_CASE and categorized:
+      - Upload errors: INVALID_FILE, FILE_TOO_LARGE, MISSING_FILE
+      - Processing errors: CLI_TIMEOUT, CLI_FAILED, PARSE_ERROR, INVALID_PARAMETERS
+      - System errors: DATABASE_ERROR, FILESYSTEM_ERROR, NETWORK_ERROR
+    </constraint>
+
+    <!-- User-Friendly Messages -->
+    <constraint type="ux-requirement">
+      Error messages MUST be user-friendly (not raw technical errors) and actionable.
+      Example: "Bambu Slicer not found. Install from: https://..." not "spawn ENOENT"
+    </constraint>
+
+    <!-- Resilience Pattern -->
+    <constraint type="architectural-pattern">
+      Individual configuration failures MUST NOT stop batch processing.
+      Use Promise.allSettled (not Promise.all) and mark failed configs with error_message in database.
+    </constraint>
+
+    <!-- Design System Consistency -->
+    <constraint type="ui-standard">
+      All UI components MUST use design system tokens from design-system-guide.md.
+      Error states: var(--color-error-*), Success states: var(--color-success-*), etc.
+    </constraint>
+
+    <!-- React Error Boundary -->
+    <constraint type="react-pattern">
+      Implement React ErrorBoundary component following React 19 best practices.
+      Must include fallback UI with "Try Again" option and error logging.
+    </constraint>
+
+    <!-- Toast Notification Library -->
+    <constraint type="library-choice">
+      Use react-hot-toast for toast notifications (lightweight, accessible, customizable).
+      Wrap in service layer for consistent API: toast.success(), toast.error(), toast.loading()
+    </constraint>
+
+    <!-- Logger Enhancement -->
+    <constraint type="service-extension">
+      Enhance existing logger.ts (do NOT replace). Add error categorization method and stack trace inclusion.
+      Maintain existing LogEntry interface and JSON output format.
+    </constraint>
+
+    <!-- File Structure -->
+    <constraint type="project-structure">
+      New files MUST follow existing conventions:
+      - Services: src/server/services/ or src/client/services/
+      - Components: src/client/components/
+      - Utilities: src/server/utils/ or src/client/utils/
+      - Middleware: src/server/middleware/
+    </constraint>
+
+    <!-- Testing Requirements -->
+    <constraint type="testing-standard">
+      All error handling code MUST have unit tests.
+      Error scenarios MUST have integration tests (upload failure, CLI error, network error).
+      Toast notifications and loading states require manual testing checklist.
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- API Error Response Format -->
+    <interface>
+      <name>ApiError</name>
+      <kind>API Response</kind>
+      <signature>
+        interface ApiError {
+          error: {
+            code: string;        // Machine-readable: 'CLI_TIMEOUT', 'INVALID_FILE'
+            message: string;     // User-friendly message
+            details?: string;    // Technical details for logging (development only)
+          }
+        }
+      </signature>
+      <path>Defined in architecture.md lines 552-559, implemented in src/server/routes/upload.ts</path>
+    </interface>
+
+    <!-- Logger Interface -->
+    <interface>
+      <name>LogEntry</name>
+      <kind>Service Interface</kind>
+      <signature>
+        interface LogEntry {
+          timestamp: string;
+          level: 'info' | 'warn' | 'error';
+          context: string;
+          message: string;
+          metadata?: any;
+        }
+
+        class Logger {
+          info(context: string, message: string, metadata?: any): void;
+          warn(context: string, message: string, metadata?: any): void;
+          error(context: string, message: string, metadata?: any): void;
+        }
+      </signature>
+      <path>src/server/utils/logger.ts lines 8-53</path>
+    </interface>
+
+    <!-- Toast Service Interface (New) -->
+    <interface>
+      <name>ToastService</name>
+      <kind>Client Service</kind>
+      <signature>
+        interface ToastService {
+          success(message: string, options?: ToastOptions): void;
+          error(message: string, options?: ToastOptions): void;
+          loading(message: string, options?: ToastOptions): string; // Returns toast ID
+          dismiss(toastId: string): void;
+          promise&lt;T&gt;(
+            promise: Promise&lt;T&gt;,
+            messages: { loading: string; success: string; error: string }
+          ): Promise&lt;T&gt;;
+        }
+      </signature>
+      <path>To be implemented in src/client/services/toast.ts</path>
+    </interface>
+
+    <!-- Error Boundary Props -->
+    <interface>
+      <name>ErrorBoundaryProps</name>
+      <kind>React Component</kind>
+      <signature>
+        interface ErrorBoundaryProps {
+          children: React.ReactNode;
+          fallback?: React.ComponentType&lt;{ error: Error; resetError: () =&gt; void }&gt;;
+          onError?: (error: Error, errorInfo: React.ErrorInfo) =&gt; void;
+        }
+      </signature>
+      <path>To be implemented in src/client/components/ErrorBoundary.tsx</path>
+    </interface>
+
+    <!-- Error Translator Interface (New) -->
+    <interface>
+      <name>ErrorTranslator</name>
+      <kind>Server Utility</kind>
+      <signature>
+        interface ErrorTranslation {
+          code: string;
+          message: string;
+          recoveryGuidance?: string;
+        }
+
+        function translateCliError(stderr: string, exitCode?: number): ErrorTranslation;
+        function translateDatabaseError(error: any): ErrorTranslation;
+        function translateNetworkError(error: any): ErrorTranslation;
+      </signature>
+      <path>To be implemented in src/server/utils/error-translator.ts</path>
+    </interface>
+
+    <!-- Loading Spinner Props -->
+    <interface>
+      <name>LoadingSpinnerProps</name>
+      <kind>React Component</kind>
+      <signature>
+        interface LoadingSpinnerProps {
+          size?: 'sm' | 'md' | 'lg';
+          color?: 'primary' | 'secondary' | 'neutral';
+          message?: string;
+        }
+      </signature>
+      <path>To be implemented in src/client/components/LoadingSpinner.tsx</path>
+    </interface>
+
+    <!-- Progress Indicator Props -->
+    <interface>
+      <name>ProgressIndicatorProps</name>
+      <kind>React Component</kind>
+      <signature>
+        interface ProgressIndicatorProps {
+          current: number;
+          total: number;
+          label?: string;
+          showPercentage?: boolean;
+          variant?: 'bar' | 'circle';
+        }
+      </signature>
+      <path>To be implemented in src/client/components/ProgressIndicator.tsx</path>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Testing framework: Vitest 4.0.5 with React Testing Library 16.3.0 and Happy-DOM 20.0.10.
+      Test command: `npm test` for watch mode, `npm run test -- --run` for single run.
+      Coverage: @vitest/coverage-v8 for code coverage reporting.
+
+      Unit Tests: Test individual functions and utilities in isolation.
+      - Place next to source files with .test.ts or .test.tsx extension
+      - Mock external dependencies (database, CLI, network)
+      - Focus on error message generation, validation logic, retry mechanisms
+
+      Integration Tests: Test error scenarios end-to-end
+      - Use supertest for API route testing
+      - Test actual error responses and status codes
+      - Verify error handling flows (upload failure → error response → client display)
+
+      Component Tests: Test React components with React Testing Library
+      - Test loading states, error boundaries, toast notifications
+      - Verify accessibility (screen readers, keyboard navigation)
+      - Test user interactions (clicks, form submissions)
+
+      Manual Testing: Required for visual elements
+      - Toast notification appearance and timing
+      - Loading spinner smoothness
+      - Progress bar accuracy
+      - Error recovery flows
+    </standards>
+
+    <locations>
+      tests/ - Integration and E2E tests
+      src/server/**/*.test.ts - Server-side unit tests (co-located with source)
+      src/client/**/*.test.tsx - Client-side component tests (co-located with source)
+      src/utils/**/*.test.ts - Utility function tests (co-located with source)
+    </locations>
+
+    <ideas>
+      <!-- AC #1: Error Messages with Actionable Guidance -->
+      <test criterion="AC1" type="unit">
+        Test error translator functions for common scenarios:
+        - CLI not found → Message includes install link
+        - CLI timeout → Message suggests reducing configs or checking system
+        - Invalid file → Message lists supported formats
+        - Database connection error → Message suggests checking connection
+      </test>
+
+      <test criterion="AC1" type="integration">
+        Test complete error flow from backend to frontend:
+        - Trigger upload error → Verify ApiError format → Check toast notification
+        - Trigger CLI error → Verify translation → Check error display
+      </test>
+
+      <!-- AC #2: Loading States -->
+      <test criterion="AC2" type="component">
+        Test LoadingSpinner component:
+        - Renders with different sizes (sm, md, lg)
+        - Shows message when provided
+        - Applies correct color variants
+      </test>
+
+      <test criterion="AC2" type="component">
+        Test FileUpload loading state:
+        - Shows spinner during upload
+        - Disables dropzone during upload
+        - Hides spinner after upload completes
+      </test>
+
+      <test criterion="AC2" type="component">
+        Test ConfigurationForm loading state:
+        - Disables submit button during processing
+        - Shows loading indicator
+        - Re-enables after completion
+      </test>
+
+      <!-- AC #3: Toast Notifications -->
+      <test criterion="AC3" type="unit">
+        Test toast service wrapper:
+        - success() shows green toast with checkmark
+        - error() shows red toast with X icon
+        - loading() shows spinner toast and returns ID
+        - dismiss() removes toast by ID
+        - promise() handles loading→success/error flow
+      </test>
+
+      <test criterion="AC3" type="manual">
+        Manual toast notification checklist:
+        - Success toast appears on successful upload (green, checkmark, auto-dismiss 3s)
+        - Error toast appears on failed upload (red, X icon, manual dismiss)
+        - Loading toast persists during slicing (spinner, manual dismiss)
+        - Multiple toasts stack correctly
+        - Toasts are screen-reader accessible
+      </test>
+
+      <!-- AC #4: File Upload Errors -->
+      <test criterion="AC4" type="integration">
+        Test file upload error scenarios:
+        - File too large (>100MB) → 413 status, FILE_TOO_LARGE code, size in message
+        - Wrong format (.obj, .blend) → 400 status, INVALID_FILE code, format list
+        - Empty file → 400 status, INVALID_FILE code, helpful message
+        - Network error → Toast notification with retry option
+      </test>
+
+      <!-- AC #5: CLI Error Translation -->
+      <test criterion="AC5" type="unit">
+        Test CLI error translator:
+        - "spawn ENOENT" → "Bambu Slicer not found" with install instructions
+        - Timeout (no output for 5min) → "Slicing timeout" with guidance
+        - Exit code 1 with stderr → Parse stderr, extract meaningful error
+        - Unknown error → Generic friendly message with support contact
+      </test>
+
+      <!-- AC #6: Network/Database Error Recovery -->
+      <test criterion="AC6" type="unit">
+        Test retry mechanism:
+        - Exponential backoff calculation (1s, 2s, 4s, 8s)
+        - Max retry attempts (3)
+        - Retry count display
+        - Last error preservation
+      </test>
+
+      <test criterion="AC6" type="integration">
+        Test error recovery flow:
+        - Database error → Retry 3 times → Show retry count
+        - Network error → Retry with backoff → Eventually fail gracefully
+        - Transient error → Succeeds on retry → Show success
+      </test>
+
+      <!-- AC #7: Progress Indicators -->
+      <test criterion="AC7" type="component">
+        Test ProgressIndicator component:
+        - Shows correct percentage (current/total * 100)
+        - Updates width/fill based on progress
+        - Displays label when provided
+        - Shows "X/Y" format when showPercentage false
+      </test>
+
+      <test criterion="AC7" type="integration">
+        Test slicing progress tracking:
+        - Extract progress from CLI stdout (if available)
+        - Update progress bar in real-time
+        - Show current/total configurations
+        - Calculate estimated time remaining (optional)
+      </test>
+
+      <!-- Error Boundary Testing -->
+      <test criterion="AC1" type="component">
+        Test ErrorBoundary component:
+        - Catches errors from child components
+        - Displays fallback UI with error message
+        - Provides "Try Again" button that resets error
+        - Logs error with stack trace
+        - Calls onError callback if provided
+      </test>
+
+      <!-- Logger Enhancement Testing -->
+      <test criterion="AC1" type="unit">
+        Test enhanced logger:
+        - error() includes stack trace in metadata
+        - Categorizes errors (upload, processing, system)
+        - Filters sensitive data (passwords, tokens)
+        - Maintains backward compatibility with existing calls
+      </test>
+    </ideas>
+  </tests>
+</story-context>

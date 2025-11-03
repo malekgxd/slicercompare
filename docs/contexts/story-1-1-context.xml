@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="story-1-1" epic="1" story="1" date="2025-10-30">
+
+  <metadata>
+    <title>Project Setup & Infrastructure</title>
+    <type>Foundation</type>
+    <complexity>Low</complexity>
+    <estimated-effort>2-3 hours</estimated-effort>
+    <prerequisites>None (first story)</prerequisites>
+  </metadata>
+
+  <project-info>
+    <name>slicercompare</name>
+    <level>2</level>
+    <type>greenfield</type>
+    <description>Web-based batch slicing automation tool for 3D print configuration comparison</description>
+  </project-info>
+
+  <architecture-constraints>
+    <technology-stack>
+      <frontend>
+        <framework>React 18+</framework>
+        <build-tool>Vite (latest)</build-tool>
+        <language>TypeScript</language>
+        <styling>Tailwind CSS 4.0</styling>
+        <state-management>React Context API</state-management>
+        <routing>React Router (to be installed)</routing>
+      </frontend>
+
+      <backend>
+        <runtime>Node.js 20.19+</runtime>
+        <framework>Express 4.x</framework>
+        <language>TypeScript</language>
+      </backend>
+
+      <database>
+        <provider>Supabase (PostgreSQL)</provider>
+        <client>@supabase/supabase-js</client>
+      </database>
+
+      <external-dependencies>
+        <dependency name="Bambu Slicer CLI" type="external-cli" status="not-yet-integrated"/>
+      </external-dependencies>
+    </technology-stack>
+
+    <architectural-patterns>
+      <pattern name="client-server">React frontend + Express backend + Supabase database</pattern>
+      <pattern name="local-filesystem">Upload/G-code storage in ./storage/ directory</pattern>
+      <pattern name="api-proxy">Vite proxies /api requests to Express backend (port 3001)</pattern>
+    </architectural-patterns>
+
+    <project-structure>
+      <directory path="src/client">React frontend components and logic</directory>
+      <directory path="src/server">Express backend with routes and services</directory>
+      <directory path="src/shared">Shared TypeScript types</directory>
+      <directory path="storage/uploads">Temporary uploaded STL/3MF files</directory>
+      <directory path="storage/gcode">Generated G-code output files</directory>
+      <directory path="tests">Test files (unit, integration, E2E)</directory>
+    </project-structure>
+
+    <naming-conventions>
+      <files>kebab-case (e.g., bambu-cli.ts, file-upload.tsx)</files>
+      <components>PascalCase (e.g., FileUpload.tsx, ComparisonTable.tsx)</components>
+      <functions>camelCase (e.g., invokeBambuSlicer, parseGcode)</functions>
+      <types>PascalCase (e.g., Configuration, SlicingResult)</types>
+      <constants>SCREAMING_SNAKE_CASE (e.g., MAX_FILE_SIZE, CLI_TIMEOUT)</constants>
+    </naming-conventions>
+  </architecture-constraints>
+
+  <story-specific-context>
+    <goal>Establish foundational project infrastructure with React frontend, Express backend, and Supabase connection</goal>
+
+    <acceptance-criteria count="7">
+      <criterion id="AC1">React application initialized with Vite + TypeScript + Tailwind CSS</criterion>
+      <criterion id="AC2">Supabase project created with connection configured</criterion>
+      <criterion id="AC3">Basic routing structure (home/upload, results pages)</criterion>
+      <criterion id="AC4">Development environment runs locally without errors</criterion>
+      <criterion id="AC5">Git repository initialized with .gitignore</criterion>
+      <criterion id="AC6">README with setup instructions</criterion>
+      <criterion id="AC7">Basic application shell renders successfully</criterion>
+    </acceptance-criteria>
+
+    <implementation-approach>
+      <phase name="1-initialize-frontend">
+        <step>Run npm create vite@latest slicercompare -- --template react-ts</step>
+        <step>Install Tailwind CSS 4.0: npm install tailwindcss@next @tailwindcss/vite</step>
+        <step>Configure vite.config.ts with React and Tailwind plugins</step>
+        <step>Add Tailwind directives to src/index.css</step>
+      </phase>
+
+      <phase name="2-setup-backend">
+        <step>Install Express and backend dependencies</step>
+        <step>Create src/server/ directory structure</step>
+        <step>Create basic Express server in src/server/index.ts</step>
+        <step>Add "server" script to package.json using tsx watch</step>
+      </phase>
+
+      <phase name="3-configure-supabase">
+        <step>Create Supabase project (free tier)</step>
+        <step>Create .env with SUPABASE_URL and SUPABASE_ANON_KEY</step>
+        <step>Create .env.example template</step>
+        <step>Test basic Supabase connection from backend</step>
+      </phase>
+
+      <phase name="4-setup-routing-and-storage">
+        <step>Install React Router: npm install react-router-dom</step>
+        <step>Create basic route structure in App.tsx</step>
+        <step>Create placeholder components (HomePage, ResultsPage)</step>
+        <step>Create storage/uploads/ and storage/gcode/ directories</step>
+      </phase>
+
+      <phase name="5-documentation-and-verification">
+        <step>Initialize Git repository (if needed)</step>
+        <step>Create comprehensive .gitignore</step>
+        <step>Write README with setup instructions</step>
+        <step>Verify: npm run dev starts frontend</step>
+        <step>Verify: npm run server starts backend</step>
+        <step>Verify: Application shell renders without errors</step>
+      </phase>
+    </implementation-approach>
+
+    <key-configuration-files>
+      <file name="vite.config.ts">
+        <purpose>Configure Vite with React and Tailwind plugins, proxy /api to backend</purpose>
+        <content-sample>
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  server: {
+    proxy: { '/api': 'http://localhost:3001' }
+  }
+})
+        </content-sample>
+      </file>
+
+      <file name="package.json">
+        <scripts>
+          <script name="dev">vite (starts frontend dev server)</script>
+          <script name="server">tsx watch src/server/index.ts (starts backend with hot reload)</script>
+          <script name="build">tsc && vite build</script>
+          <script name="test">vitest</script>
+        </scripts>
+        <dependencies>Key: react, express, @supabase/supabase-js, p-limit, tailwindcss@next</dependencies>
+      </file>
+
+      <file name=".env">
+        <purpose>Store Supabase credentials and environment config</purpose>
+        <variables>
+          <var name="SUPABASE_URL">https://your-project.supabase.co</var>
+          <var name="SUPABASE_ANON_KEY">your-anon-key</var>
+          <var name="NODE_ENV">development</var>
+          <var name="PORT">3001</var>
+        </variables>
+      </file>
+    </key-configuration-files>
+
+    <testing-requirements>
+      <test-type name="unit">No unit tests required for Story 1.1 (infrastructure setup)</test-type>
+      <test-type name="integration">Manual verification that dev servers start and app renders</test-type>
+      <test-type name="e2e">Not applicable for infrastructure story</test-type>
+      <validation>Visual confirmation: homepage loads, no console errors, routing works</validation>
+    </testing-requirements>
+
+    <success-criteria>
+      <criterion>Frontend dev server starts on http://localhost:5173 without errors</criterion>
+      <criterion>Backend server starts on http://localhost:3001 without errors</criterion>
+      <criterion>Homepage renders with basic React app shell</criterion>
+      <criterion>Navigation between / and /results works</criterion>
+      <criterion>README provides clear setup instructions</criterion>
+      <criterion>Supabase connection can be established from backend</criterion>
+      <criterion>Git repository initialized with proper .gitignore</criterion>
+    </success-criteria>
+  </story-specific-context>
+
+  <dependencies-and-interfaces>
+    <external-dependencies>
+      <dependency name="Node.js" version="20.19+" required="true">Runtime for backend</dependency>
+      <dependency name="npm" version="latest" required="true">Package manager</dependency>
+      <dependency name="Supabase Account" version="free-tier" required="true">Database hosting</dependency>
+    </external-dependencies>
+
+    <no-code-dependencies>
+      <note>This is the first story - no existing codebase to integrate with</note>
+    </no-code-dependencies>
+
+    <future-interfaces>
+      <interface name="FileUpload">Will be created in Story 1.2</interface>
+      <interface name="ConfigurationForm">Will be created in Story 1.5</interface>
+      <interface name="ComparisonTable">Will be created in Story 1.8</interface>
+    </future-interfaces>
+  </dependencies-and-interfaces>
+
+  <references>
+    <document path="docs/architecture.md" sections="Project Initialization, Tech Stack, Development Environment"/>
+    <document path="docs/PRD.md" sections="Functional Requirements, Non-Functional Requirements"/>
+    <document path="docs/epics.md" sections="Epic 1, Story 1.1"/>
+  </references>
+
+</story-context>

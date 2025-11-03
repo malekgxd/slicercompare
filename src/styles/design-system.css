@@ -1,0 +1,461 @@
+/**
+ * SlicerCompare Design System
+ * A comprehensive design token system for consistent UI/UX
+ *
+ * Usage: Import in your main CSS file
+ * @import './design-system.css';
+ */
+
+@layer base {
+  :root {
+    /* ============================================
+       COLOR SYSTEM
+       ============================================ */
+
+    /* Brand Colors - Technical Blue + Maker Orange */
+    --color-primary-50: #eff6ff;
+    --color-primary-100: #dbeafe;
+    --color-primary-200: #bfdbfe;
+    --color-primary-300: #93c5fd;
+    --color-primary-400: #60a5fa;
+    --color-primary-500: #3b82f6;  /* Primary brand color */
+    --color-primary-600: #2563eb;
+    --color-primary-700: #1d4ed8;
+    --color-primary-800: #1e40af;
+    --color-primary-900: #1e3a8a;
+    --color-primary-950: #172554;
+
+    /* Accent Colors - Warm orange (3D printing heat/energy) */
+    --color-accent-50: #fff7ed;
+    --color-accent-100: #ffedd5;
+    --color-accent-200: #fed7aa;
+    --color-accent-300: #fdba74;
+    --color-accent-400: #fb923c;
+    --color-accent-500: #f97316;  /* Accent brand color */
+    --color-accent-600: #ea580c;
+    --color-accent-700: #c2410c;
+    --color-accent-800: #9a3412;
+    --color-accent-900: #7c2d12;
+    --color-accent-950: #431407;
+
+    /* Semantic Colors */
+
+    /* Success - Green */
+    --color-success-50: #f0fdf4;
+    --color-success-100: #dcfce7;
+    --color-success-200: #bbf7d0;
+    --color-success-300: #86efac;
+    --color-success-400: #4ade80;
+    --color-success-500: #22c55e;
+    --color-success-600: #16a34a;
+    --color-success-700: #15803d;
+    --color-success-800: #166534;
+    --color-success-900: #14532d;
+    --color-success-950: #052e16;
+
+    /* Error - Red */
+    --color-error-50: #fef2f2;
+    --color-error-100: #fee2e2;
+    --color-error-200: #fecaca;
+    --color-error-300: #fca5a5;
+    --color-error-400: #f87171;
+    --color-error-500: #ef4444;
+    --color-error-600: #dc2626;
+    --color-error-700: #b91c1c;
+    --color-error-800: #991b1b;
+    --color-error-900: #7f1d1d;
+    --color-error-950: #450a0a;
+
+    /* Warning - Amber */
+    --color-warning-50: #fffbeb;
+    --color-warning-100: #fef3c7;
+    --color-warning-200: #fde68a;
+    --color-warning-300: #fcd34d;
+    --color-warning-400: #fbbf24;
+    --color-warning-500: #f59e0b;
+    --color-warning-600: #d97706;
+    --color-warning-700: #b45309;
+    --color-warning-800: #92400e;
+    --color-warning-900: #78350f;
+    --color-warning-950: #451a03;
+
+    /* Info - Cyan */
+    --color-info-50: #ecfeff;
+    --color-info-100: #cffafe;
+    --color-info-200: #a5f3fc;
+    --color-info-300: #67e8f9;
+    --color-info-400: #22d3ee;
+    --color-info-500: #06b6d4;
+    --color-info-600: #0891b2;
+    --color-info-700: #0e7490;
+    --color-info-800: #155e75;
+    --color-info-900: #164e63;
+    --color-info-950: #083344;
+
+    /* Neutral Colors - Cool gray */
+    --color-neutral-50: #f8fafc;
+    --color-neutral-100: #f1f5f9;
+    --color-neutral-200: #e2e8f0;
+    --color-neutral-300: #cbd5e1;
+    --color-neutral-400: #94a3b8;
+    --color-neutral-500: #64748b;
+    --color-neutral-600: #475569;
+    --color-neutral-700: #334155;
+    --color-neutral-800: #1e293b;
+    --color-neutral-900: #0f172a;
+    --color-neutral-950: #020617;
+
+    /* Background Colors */
+    --color-background-primary: var(--color-neutral-800);
+    --color-background-secondary: var(--color-neutral-900);
+    --color-background-tertiary: var(--color-neutral-950);
+    --color-background-inverse: #ffffff;
+
+    /* Dark Theme Backgrounds - Proper layering for contrast */
+    --color-bg-app: #0f172a;           /* App base - neutral-900 */
+    --color-bg-card: #1e293b;          /* Card surfaces - neutral-800 */
+    --color-bg-card-elevated: #334155; /* Elevated cards - neutral-700 */
+    --color-bg-input: #1e293b;         /* Input backgrounds */
+
+    /* Text Colors */
+    --color-text-primary: #ffffff;
+    --color-text-secondary: var(--color-neutral-300);
+    --color-text-tertiary: var(--color-neutral-400);
+    --color-text-disabled: var(--color-neutral-500);
+    --color-text-inverse: var(--color-neutral-900);
+    --color-text-link: var(--color-primary-400);
+    --color-text-link-hover: var(--color-primary-300);
+
+    /* High Contrast Text Colors - WCAG AAA Compliant */
+    --color-text-heading: #f1f5f9;     /* Headings - neutral-100 (16.5:1 contrast on dark bg) */
+    --color-text-body: #e2e8f0;        /* Body text - neutral-200 (14.7:1 contrast) */
+    --color-text-secondary-contrast: #cbd5e1;   /* Secondary - neutral-300 (10.3:1 contrast) */
+    --color-text-muted: #94a3b8;       /* Muted - neutral-400 (6.1:1 contrast) */
+    --color-text-accent: #60a5fa;      /* Accent links - primary-400 (8.2:1 contrast) */
+
+    /* Border Colors */
+    --color-border-default: var(--color-neutral-200);
+    --color-border-hover: var(--color-neutral-300);
+    --color-border-focus: var(--color-primary-500);
+    --color-border-disabled: var(--color-neutral-200);
+
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+
+    /* Font Families */
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
+
+    /* Font Sizes */
+    --text-xs: 0.75rem;      /* 12px */
+    --text-sm: 0.875rem;     /* 14px */
+    --text-base: 1rem;       /* 16px */
+    --text-lg: 1.125rem;     /* 18px */
+    --text-xl: 1.25rem;      /* 20px */
+    --text-2xl: 1.5rem;      /* 24px */
+    --text-3xl: 1.875rem;    /* 30px */
+    --text-4xl: 2.25rem;     /* 36px */
+    --text-5xl: 3rem;        /* 48px */
+    --text-6xl: 3.75rem;     /* 60px */
+
+    /* Line Heights */
+    --leading-none: 1;
+    --leading-tight: 1.25;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --leading-loose: 2;
+
+    /* Font Weights */
+    --font-normal: 400;
+    --font-medium: 500;
+    --font-semibold: 600;
+    --font-bold: 700;
+    --font-extrabold: 800;
+
+    /* Letter Spacing */
+    --tracking-tighter: -0.05em;
+    --tracking-tight: -0.025em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
+    --tracking-widest: 0.1em;
+
+    /* ============================================
+       SPACING
+       ============================================ */
+
+    --space-0: 0;
+    --space-1: 0.25rem;   /* 4px */
+    --space-2: 0.5rem;    /* 8px */
+    --space-3: 0.75rem;   /* 12px */
+    --space-4: 1rem;      /* 16px */
+    --space-5: 1.25rem;   /* 20px */
+    --space-6: 1.5rem;    /* 24px */
+    --space-8: 2rem;      /* 32px */
+    --space-10: 2.5rem;   /* 40px */
+    --space-12: 3rem;     /* 48px */
+    --space-16: 4rem;     /* 64px */
+    --space-20: 5rem;     /* 80px */
+    --space-24: 6rem;     /* 96px */
+    --space-32: 8rem;     /* 128px */
+
+    /* ============================================
+       BORDER RADIUS
+       ============================================ */
+
+    --radius-none: 0;
+    --radius-sm: 0.125rem;   /* 2px */
+    --radius-base: 0.25rem;  /* 4px */
+    --radius-md: 0.375rem;   /* 6px */
+    --radius-lg: 0.5rem;     /* 8px */
+    --radius-xl: 0.75rem;    /* 12px */
+    --radius-2xl: 1rem;      /* 16px */
+    --radius-3xl: 1.5rem;    /* 24px */
+    --radius-full: 9999px;
+
+    /* ============================================
+       SHADOWS
+       ============================================ */
+
+    --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+    --shadow-base: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.05);
+
+    /* Focus shadows */
+    --shadow-focus-primary: 0 0 0 3px rgba(59, 130, 246, 0.5);
+    --shadow-focus-error: 0 0 0 3px rgba(239, 68, 68, 0.5);
+    --shadow-focus-success: 0 0 0 3px rgba(34, 197, 94, 0.5);
+
+    /* ============================================
+       Z-INDEX
+       ============================================ */
+
+    --z-0: 0;
+    --z-10: 10;
+    --z-20: 20;
+    --z-30: 30;
+    --z-40: 40;
+    --z-50: 50;
+    --z-dropdown: 1000;
+    --z-sticky: 1100;
+    --z-modal: 1200;
+    --z-popover: 1300;
+    --z-tooltip: 1400;
+    --z-notification: 1500;
+
+    /* ============================================
+       TRANSITIONS
+       ============================================ */
+
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slower: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+
+    --ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ============================================
+       COMPONENT-SPECIFIC TOKENS
+       ============================================ */
+
+    /* Buttons */
+    --button-padding-sm: var(--space-2) var(--space-3);
+    --button-padding-base: var(--space-2) var(--space-4);
+    --button-padding-lg: var(--space-3) var(--space-6);
+    --button-radius: var(--radius-lg);
+    --button-shadow: var(--shadow-sm);
+    --button-shadow-hover: var(--shadow-base);
+
+    /* Input Fields */
+    --input-padding: var(--space-2) var(--space-3);
+    --input-border: 1px solid var(--color-border-default);
+    --input-border-hover: 1px solid var(--color-border-hover);
+    --input-border-focus: 2px solid var(--color-border-focus);
+    --input-radius: var(--radius-lg);
+    --input-shadow-focus: var(--shadow-focus-primary);
+
+    /* Cards */
+    --card-padding: var(--space-6);
+    --card-radius: var(--radius-xl);
+    --card-shadow: var(--shadow-sm);
+    --card-shadow-hover: var(--shadow-md);
+    --card-border: 1px solid var(--color-border-default);
+
+    /* Dropzone */
+    --dropzone-border-default: 2px dashed var(--color-neutral-300);
+    --dropzone-border-hover: 2px dashed var(--color-primary-400);
+    --dropzone-border-active: 2px solid var(--color-primary-500);
+    --dropzone-border-error: 2px dashed var(--color-error-400);
+    --dropzone-bg-default: var(--color-background-primary);
+    --dropzone-bg-hover: var(--color-primary-50);
+    --dropzone-bg-active: var(--color-primary-100);
+    --dropzone-padding: var(--space-12);
+    --dropzone-radius: var(--radius-2xl);
+
+    /* Upload Component - Compact & Dark Theme Optimized */
+    --upload-border-default: #475569;   /* neutral-600 - visible but subtle */
+    --upload-border-hover: #60a5fa;     /* primary-400 - clear hover indication */
+    --upload-border-active: #3b82f6;    /* primary-500 - solid active state */
+    --upload-bg: #0f172a;               /* Slightly darker than card */
+    --upload-bg-hover: rgba(59, 130, 246, 0.05);  /* Subtle blue tint */
+    --upload-bg-active: rgba(59, 130, 246, 0.1);  /* More prominent blue */
+    --upload-height-compact: 140px;
+    --upload-padding-compact: 1.5rem;
+
+    /* Semantic Colors for Dark Theme */
+    --color-success-bg: rgba(34, 197, 94, 0.15);
+    --color-success-border: #22c55e;
+    --color-success-text: #86efac;
+
+    --color-error-bg: rgba(239, 68, 68, 0.15);
+    --color-error-border: #ef4444;
+    --color-error-text: #fca5a5;
+
+    --color-info-bg: rgba(96, 165, 250, 0.15);
+    --color-info-border: #60a5fa;
+    --color-info-text: #93c5fd;
+
+    /* Toast/Notifications */
+    --toast-padding: var(--space-4);
+    --toast-radius: var(--radius-lg);
+    --toast-shadow: var(--shadow-lg);
+
+    /* Modal */
+    --modal-overlay-bg: rgba(15, 23, 42, 0.75);
+    --modal-bg: var(--color-background-primary);
+    --modal-padding: var(--space-6);
+    --modal-radius: var(--radius-2xl);
+    --modal-shadow: var(--shadow-2xl);
+
+    /* Progress Bar */
+    --progress-height: 0.5rem;
+    --progress-radius: var(--radius-full);
+    --progress-bg: var(--color-neutral-200);
+    --progress-fill: var(--color-primary-500);
+
+    /* Badge */
+    --badge-padding: var(--space-1) var(--space-2);
+    --badge-radius: var(--radius-base);
+    --badge-font-size: var(--text-xs);
+
+    /* ============================================
+       BREAKPOINTS (for reference)
+       ============================================ */
+
+    --breakpoint-sm: 640px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 1024px;
+    --breakpoint-xl: 1280px;
+    --breakpoint-2xl: 1536px;
+
+    /* ============================================
+       CONTAINER WIDTHS
+       ============================================ */
+
+    --container-sm: 640px;
+    --container-md: 768px;
+    --container-lg: 1024px;
+    --container-xl: 1280px;
+    --container-2xl: 1536px;
+  }
+
+  /* ============================================
+     DARK MODE SUPPORT (Optional)
+     ============================================ */
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Override colors for dark mode */
+      --color-background-primary: var(--color-neutral-900);
+      --color-background-secondary: var(--color-neutral-800);
+      --color-background-tertiary: var(--color-neutral-700);
+      --color-background-inverse: #ffffff;
+
+      --color-text-primary: var(--color-neutral-50);
+      --color-text-secondary: var(--color-neutral-300);
+      --color-text-tertiary: var(--color-neutral-400);
+      --color-text-disabled: var(--color-neutral-600);
+      --color-text-inverse: var(--color-neutral-900);
+
+      --color-border-default: var(--color-neutral-700);
+      --color-border-hover: var(--color-neutral-600);
+
+      --card-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05);
+      --card-shadow-hover: 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+  }
+
+  /* Force light mode if user preference is set */
+  [data-theme="light"] {
+    color-scheme: light;
+  }
+
+  /* Force dark mode if user preference is set */
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+@layer utilities {
+  /* Text utilities */
+  .text-primary { color: var(--color-text-primary); }
+  .text-secondary { color: var(--color-text-secondary); }
+  .text-tertiary { color: var(--color-text-tertiary); }
+  .text-disabled { color: var(--color-text-disabled); }
+  .text-inverse { color: var(--color-text-inverse); }
+
+  /* High Contrast Text utilities */
+  .text-heading { color: var(--color-text-heading); }
+  .text-body { color: var(--color-text-body); }
+  .text-secondary-contrast { color: var(--color-text-secondary-contrast); }
+  .text-muted { color: var(--color-text-muted); }
+  .text-accent { color: var(--color-text-accent); }
+
+  /* Background utilities */
+  .bg-primary { background-color: var(--color-background-primary); }
+  .bg-secondary { background-color: var(--color-background-secondary); }
+  .bg-tertiary { background-color: var(--color-background-tertiary); }
+  .bg-inverse { background-color: var(--color-background-inverse); }
+
+  /* Dark Theme Background utilities */
+  .bg-app { background-color: var(--color-bg-app); }
+  .bg-card { background-color: var(--color-bg-card); }
+  .bg-card-elevated { background-color: var(--color-bg-card-elevated); }
+
+  /* Focus visible utility */
+  .focus-ring {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+  }
+
+  /* Smooth transitions */
+  .transition-smooth {
+    transition: all var(--transition-base);
+  }
+
+  .transition-fast {
+    transition: all var(--transition-fast);
+  }
+
+  .transition-slow {
+    transition: all var(--transition-slow);
+  }
+}

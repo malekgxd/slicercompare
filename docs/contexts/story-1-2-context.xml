@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <story-id>1.2</story-id>
+    <story-title>Single File Upload with Storage</story-title>
+    <epic-id>1</epic-id>
+    <epic-title>SlicerCompare Foundation & Core Workflow</epic-title>
+    <created-date>2025-10-30</created-date>
+    <status>Approved</status>
+    <estimated-effort>3-4 hours</estimated-effort>
+  </metadata>
+
+  <project-info>
+    <project-name>slicercompare</project-name>
+    <project-root>C:\Users\dpmal\projects\slicercompare</project-root>
+    <project-level>2</project-level>
+    <tech-stack>
+      <frontend>React 18+ with TypeScript and Tailwind CSS 4.0</frontend>
+      <backend>Node.js 20.19+, Express 4.x</backend>
+      <database>Supabase (PostgreSQL)</database>
+      <storage>Supabase Storage</storage>
+      <build-tool>Vite</build-tool>
+    </tech-stack>
+  </project-info>
+
+  <story-summary>
+    <user-story>
+      As a print farm operator,
+      I want to upload a single STL or 3MF file through drag-and-drop or file picker,
+      So that I can provide a model for slicing experiments.
+    </user-story>
+    <value-proposition>
+      Enables users to provide 3D model files for batch slicing comparison. This is the first user-facing feature that collects input for the core workflow.
+    </value-proposition>
+    <prerequisites>
+      <prerequisite>Story 1.1: Project Setup &amp; Infrastructure (COMPLETED)</prerequisite>
+    </prerequisites>
+    <handoff-to>Story 1.3: Bambu Slicer CLI Integration Spike (uses uploaded files for CLI testing)</handoff-to>
+  </story-summary>
+
+  <acceptance-criteria>
+    <criterion id="1">User can drag-and-drop OR click to select a file for upload</criterion>
+    <criterion id="2">Only STL and 3MF file formats accepted with validation (extension + MIME type)</criterion>
+    <criterion id="3">File size validation enforces 100MB maximum with clear error message</criterion>
+    <criterion id="4">File uploads to Supabase Storage bucket "uploaded-models"</criterion>
+    <criterion id="5">File metadata stored in database (filename, path, size, upload timestamp)</criterion>
+    <criterion id="6">Uploaded file path retrievable for CLI processing in Story 1.3</criterion>
+    <criterion id="7">Success message displays filename and upload confirmation</criterion>
+    <criterion id="8">Clear error handling for invalid format, size exceeded, and upload failures</criterion>
+  </acceptance-criteria>
+
+  <architecture-constraints>
+    <constraint id="ADR-001" source="docs/architecture.md">
+      <title>Vite + React + TypeScript Frontend</title>
+      <description>Use React 18+ with TypeScript for component-based UI</description>
+      <impact>FileUpload component must be TypeScript React component</impact>
+    </constraint>
+    <constraint id="ADR-003" source="docs/architecture.md">
+      <title>Node.js Backend with Express</title>
+      <description>Backend built with Express for REST API endpoints</description>
+      <impact>Upload endpoint must be Express route handler</impact>
+    </constraint>
+    <constraint id="STORAGE-DECISION" source="docs/stories/story-1-2.md#Dev-Notes">
+      <title>Supabase Storage (Deviation from ADR-002)</title>
+      <description>Use Supabase Storage instead of local filesystem for cloud-native approach</description>
+      <rationale>Supabase connection already established, simplifies deployment, supports future cloud path</rationale>
+      <impact>Files stored in Supabase bucket, accessed via URLs or temp downloads for CLI</impact>
+    </constraint>
+    <constraint id="SCHEMA-STRATEGY" source="Epic Optimizer analysis">
+      <title>Minimal Schema in Story 1.2</title>
+      <description>Create uploaded_files table NOW to avoid forward dependency on Story 1.4</description>
+      <rationale>Separates file upload from job/configuration concepts, enables immediate metadata tracking</rationale>
+      <impact>Must create migration file and run migration in this story</impact>
+    </constraint>
+    <constraint id="SCOPE-LIMIT" source="Epic Optimizer analysis">
+      <title>Single File Upload Only</title>
+      <description>Batch upload deferred to Story 1.6 (Batch Slicing Engine)</description>
+      <impact>UI accepts one file at a time, no multi-file queue management</impact>
+    </constraint>
+  </architecture-constraints>
+
+  <technology-stack>
+    <frontend>
+      <framework>React 18+</framework>
+      <language>TypeScript</language>
+      <styling>Tailwind CSS 4.0</styling>
+      <library dependency="react-dropzone" version="14+">Drag-and-drop file upload</library>
+    </frontend>
+    <backend>
+      <runtime>Node.js 20.19+</runtime>
+      <framework>Express 4.x</framework>
+      <language>TypeScript</language>
+      <library dependency="multer" version="1.4+">Multipart form data handling</library>
+      <library dependency="@supabase/storage-js" version="latest">Supabase Storage client</library>
+      <library dependency="file-type" version="18+">MIME type detection</library>
+    </backend>
+    <database>
+      <provider>Supabase (PostgreSQL)</provider>
+      <client>@supabase/supabase-js</client>
+      <migration-tool>Supabase CLI or SQL scripts</migration-tool>
+    </database>
+    <storage>
+      <provider>Supabase Storage</provider>
+      <bucket>uploaded-models</bucket>
+      <access-policy>Public read access for CLI integration</access-policy>
+    </storage>
+  </technology-stack>
+
+  <implementation-approach>
+    <phase n="1" name="Supabase Setup">
+      <step>Create Supabase Storage bucket "uploaded-models"</step>
+      <step>Configure public read access on bucket</step>
+      <step>Create migration file: supabase/migrations/20251030_uploaded_files.sql</step>
+      <step>Define uploaded_files table schema with fields: id, filename, file_path, file_size, mime_type, uploaded_at, status</step>
+      <step>Add MIME type constraint: 'model/stl' or 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml'</step>
+      <step>Add status constraint: 'uploaded', 'processing', 'completed', 'failed'</step>
+      <step>Create index on status field</step>
+      <step>Run migration to create table</step>
+      <step>Verify bucket and table in Supabase dashboard</step>
+    </phase>
+
+    <phase n="2" name="Backend Upload API">
+      <step>Install dependencies: npm install multer @supabase/storage-js file-type</step>
+      <step>Create src/server/routes/upload.ts file</step>
+      <step>Import Express, multer, Supabase client, file-type</step>
+      <step>Configure multer for memory storage (files buffered for Supabase upload)</step>
+      <step>Define POST /api/upload route handler</step>
+      <step>Validate file extension (.stl or .3mf, case-insensitive)</step>
+      <step>Validate MIME type using file-type library</step>
+      <step>Validate file size ≤ 100MB (104,857,600 bytes)</step>
+      <step>Generate unique file path: uploaded-models/{uuid}/{sanitized-filename}</step>
+      <step>Upload file buffer to Supabase Storage using supabase.storage.from('uploaded-models').upload()</step>
+      <step>Get public URL or signed URL for uploaded file</step>
+      <step>Insert metadata record to uploaded_files table</step>
+      <step>Return 201 response with file metadata JSON</step>
+      <step>Handle errors: 400 (invalid file), 413 (too large), 500 (upload/db failure)</step>
+      <step>Mount upload router in src/server/index.ts</step>
+    </phase>
+
+    <phase n="3" name="Frontend FileUpload Component">
+      <step>Install dependency: npm install react-dropzone</step>
+      <step>Create src/client/components/FileUpload.tsx</step>
+      <step>Import useDropzone from react-dropzone</step>
+      <step>Configure dropzone: accept only .stl and .3mf, maxSize 100MB, multiple false</step>
+      <step>Implement drag-and-drop zone UI with Tailwind styling</step>
+      <step>Add visual states: default, hover (isDragActive), error</step>
+      <step>Add instructional text: "Drag STL or 3MF file here, or click to browse"</step>
+      <step>Add hidden file input for click-to-browse (accessibility)</step>
+      <step>Implement onDrop handler</step>
+      <step>Validate file client-side (type, size) before upload</step>
+      <step>Display loading state during upload (disabled dropzone, spinner/message)</step>
+      <step>Call POST /api/upload with FormData containing file</step>
+      <step>Handle response: success (show filename + confirmation) or error (show error message)</step>
+      <step>Style error messages in red with clear text</step>
+      <step>Style success messages in green with file details</step>
+      <step>Add "Upload Another" button after successful upload</step>
+    </phase>
+
+    <phase n="4" name="Integration">
+      <step>Open src/client/pages/HomePage.tsx</step>
+      <step>Import FileUpload component</step>
+      <step>Replace placeholder content with upload UI</step>
+      <step>Add heading: "Upload Your 3D Model"</step>
+      <step>Add instructional text: "Upload an STL or 3MF file to begin comparison"</step>
+      <step>Render FileUpload component</step>
+      <step>Test in browser: npm run dev + npm run server</step>
+    </phase>
+
+    <phase n="5" name="Testing &amp; Validation">
+      <step>Test drag-and-drop with valid STL file</step>
+      <step>Test click-to-browse with valid 3MF file</step>
+      <step>Test rejection of invalid file types (.jpg, .txt, .obj)</step>
+      <step>Test rejection of oversized file (&gt;100MB)</step>
+      <step>Verify file uploaded to Supabase Storage bucket</step>
+      <step>Verify metadata record created in uploaded_files table</step>
+      <step>Test file path retrieval from database</step>
+      <step>Verify file URL is accessible (public read)</step>
+      <step>Test error handling for network failures</step>
+      <step>Test cross-browser: Chrome, Firefox, Safari</step>
+      <step>Test keyboard navigation (tab to upload button, press Enter)</step>
+    </phase>
+  </implementation-approach>
+
+  <files-to-create>
+    <file path="supabase/migrations/20251030_uploaded_files.sql" type="migration">
+      Database schema migration for uploaded_files table
+    </file>
+    <file path="src/server/routes/upload.ts" type="backend-route">
+      Express route handler for POST /api/upload endpoint
+    </file>
+    <file path="src/server/services/file-storage.ts" type="backend-service">
+      Supabase Storage integration service (optional helper)
+    </file>
+    <file path="src/client/components/FileUpload.tsx" type="frontend-component">
+      React component for drag-and-drop file upload UI
+    </file>
+    <file path="src/client/components/FileUpload.test.tsx" type="frontend-test">
+      Unit tests for FileUpload component (optional for MVP)
+    </file>
+  </files-to-create>
+
+  <files-to-modify>
+    <file path="src/server/index.ts" type="backend-entry">
+      Mount upload router: app.use('/api', uploadRouter)
+    </file>
+    <file path="src/client/pages/HomePage.tsx" type="frontend-page">
+      Replace placeholder with FileUpload component
+    </file>
+    <file path="package.json" type="config">
+      Add dependencies: react-dropzone, multer, @supabase/storage-js, file-type
+    </file>
+  </files-to-modify>
+
+  <api-contracts>
+    <endpoint method="POST" path="/api/upload">
+      <description>Upload single STL or 3MF file to Supabase Storage</description>
+      <request>
+        <content-type>multipart/form-data</content-type>
+        <body>
+          <field name="file" type="binary" required="true">STL or 3MF file</field>
+        </body>
+      </request>
+      <response status="201">
+        <content-type>application/json</content-type>
+        <body>
+          <field name="id" type="uuid">Unique file ID</field>
+          <field name="filename" type="string">Original filename</field>
+          <field name="filePath" type="string">Supabase Storage path</field>
+          <field name="fileSize" type="integer">Size in bytes</field>
+          <field name="mimeType" type="string">Detected MIME type</field>
+          <field name="uploadedAt" type="timestamp">Upload timestamp</field>
+        </body>
+      </response>
+      <response status="400">
+        <description>Invalid file format or validation error</description>
+        <body>
+          <field name="error.code" type="string">INVALID_FILE</field>
+          <field name="error.message" type="string">Error description</field>
+        </body>
+      </response>
+      <response status="413">
+        <description>File too large</description>
+        <body>
+          <field name="error.code" type="string">FILE_TOO_LARGE</field>
+          <field name="error.message" type="string">Size limit message</field>
+        </body>
+      </response>
+      <response status="500">
+        <description>Server error during upload or database operation</description>
+        <body>
+          <field name="error.code" type="string">UPLOAD_FAILED or DATABASE_ERROR</field>
+          <field name="error.message" type="string">Error description</field>
+        </body>
+      </response>
+    </endpoint>
+  </api-contracts>
+
+  <database-schema>
+    <table name="uploaded_files">
+      <description>Stores metadata for uploaded STL and 3MF files</description>
+      <column name="id" type="uuid" constraint="primary key default gen_random_uuid()">Unique file ID</column>
+      <column name="filename" type="text" constraint="not null">Original filename</column>
+      <column name="file_path" type="text" constraint="not null">Supabase Storage path: uploaded-models/{uuid}/{filename}</column>
+      <column name="file_size" type="bigint" constraint="not null">File size in bytes</column>
+      <column name="mime_type" type="text" constraint="not null check (mime_type in ('model/stl', 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml'))">Validated MIME type</column>
+      <column name="uploaded_at" type="timestamp with time zone" constraint="default now()">Upload timestamp</column>
+      <column name="status" type="text" constraint="default 'uploaded' check (status in ('uploaded', 'processing', 'completed', 'failed'))">Processing status</column>
+      <index name="idx_uploaded_files_status" columns="status">Index for status queries</index>
+    </table>
+  </database-schema>
+
+  <validation-rules>
+    <rule id="VR-1" type="file-extension">
+      File extension must be .stl or .3mf (case-insensitive)
+    </rule>
+    <rule id="VR-2" type="mime-type">
+      MIME type must be 'model/stl' or 'application/vnd.ms-package.3dmanufacturing-3dmodel+xml'
+    </rule>
+    <rule id="VR-3" type="file-size">
+      File size must not exceed 100MB (104,857,600 bytes)
+    </rule>
+    <rule id="VR-4" type="filename-sanitization">
+      Remove special characters, path traversal sequences, limit to 255 characters
+    </rule>
+    <rule id="VR-5" type="bucket-access">
+      Supabase Storage bucket must have public read access for CLI integration
+    </rule>
+  </validation-rules>
+
+  <error-handling>
+    <error code="INVALID_FILE" http-status="400">
+      <trigger>File extension not .stl or .3mf, or MIME type mismatch</trigger>
+      <message>File format not supported. Please upload STL or 3MF files only.</message>
+      <user-action>Select a valid STL or 3MF file</user-action>
+    </error>
+    <error code="FILE_TOO_LARGE" http-status="413">
+      <trigger>File size exceeds 100MB limit</trigger>
+      <message>File size exceeds 100MB limit. Current file: {size}MB.</message>
+      <user-action>Upload a smaller file or compress the model</user-action>
+    </error>
+    <error code="UPLOAD_FAILED" http-status="500">
+      <trigger>Supabase Storage upload fails</trigger>
+      <message>Upload failed. Please try again.</message>
+      <user-action>Retry upload or check network connection</user-action>
+    </error>
+    <error code="DATABASE_ERROR" http-status="500">
+      <trigger>Database insert fails</trigger>
+      <message>Failed to save file metadata. Please try again.</message>
+      <user-action>Retry upload or contact support</user-action>
+    </error>
+  </error-handling>
+
+  <test-cases>
+    <test-case id="TC-1" type="functional">
+      <description>Upload valid STL ASCII file via drag-and-drop</description>
+      <steps>
+        <step>Create or download valid STL ASCII file (e.g., cube.stl)</step>
+        <step>Open application homepage</step>
+        <step>Drag file into upload zone</step>
+        <step>Observe visual feedback during drag</step>
+        <step>Release file</step>
+        <step>Wait for upload to complete</step>
+      </steps>
+      <expected-result>
+        - Success message displays with filename
+        - File appears in Supabase Storage bucket
+        - Database record created with correct metadata
+      </expected-result>
+    </test-case>
+
+    <test-case id="TC-2" type="functional">
+      <description>Upload valid 3MF file via click-to-browse</description>
+      <steps>
+        <step>Create or download valid 3MF file</step>
+        <step>Open application homepage</step>
+        <step>Click upload area to open file picker</step>
+        <step>Select 3MF file from dialog</step>
+        <step>Wait for upload to complete</step>
+      </steps>
+      <expected-result>
+        - Success message displays with filename
+        - File appears in Supabase Storage bucket
+        - Database record created with correct metadata
+      </expected-result>
+    </test-case>
+
+    <test-case id="TC-3" type="validation">
+      <description>Reject invalid file type (.jpg image)</description>
+      <steps>
+        <step>Drag .jpg image file into upload zone</step>
+      </steps>
+      <expected-result>
+        - Error message: "File format not supported. Please upload STL or 3MF files only."
+        - No upload initiated
+        - No database record created
+      </expected-result>
+    </test-case>
+
+    <test-case id="TC-4" type="validation">
+      <description>Reject oversized file (&gt;100MB)</description>
+      <steps>
+        <step>Create or obtain STL file larger than 100MB</step>
+        <step>Drag file into upload zone</step>
+      </steps>
+      <expected-result>
+        - Error message: "File size exceeds 100MB limit. Current file: {size}MB."
+        - No upload initiated
+        - No database record created
+      </expected-result>
+    </test-case>
+
+    <test-case id="TC-5" type="integration">
+      <description>Verify file path retrievable for CLI processing</description>
+      <steps>
+        <step>Upload valid STL file successfully</step>
+        <step>Query database for uploaded_files record</step>
+        <step>Extract file_path value</step>
+        <step>Attempt to access file via Supabase Storage public URL</step>
+      </steps>
+      <expected-result>
+        - File path is valid Supabase Storage path
+        - File is accessible via public URL
+        - File content matches uploaded file
+      </expected-result>
+    </test-case>
+
+    <test-case id="TC-6" type="ui">
+      <description>Visual feedback during drag-and-drop</description>
+      <steps>
+        <step>Drag file near upload zone (but not over it)</step>
+        <step>Drag file over upload zone</step>
+        <step>Drag file away from upload zone</step>
+      </steps>
+      <expected-result>
+        - Upload zone highlights when file hovers over it
+        - Upload zone returns to default state when file leaves
+        - Visual states change within 100ms
+      </expected-result>
+    </test-case>
+
+    <test-case id="TC-7" type="accessibility">
+      <description>Keyboard-only upload</description>
+      <steps>
+        <step>Tab to upload area</step>
+        <step>Press Enter or Space to open file picker</step>
+        <step>Select file using keyboard in file dialog</step>
+        <step>Confirm selection</step>
+      </steps>
+      <expected-result>
+        - Upload area is keyboard-accessible
+        - File picker opens on Enter/Space
+        - Upload proceeds normally after file selection
+      </expected-result>
+    </test-case>
+  </test-cases>
+
+  <success-criteria>
+    <criterion id="SC-1">All 8 acceptance criteria met and verified through testing</criterion>
+    <criterion id="SC-2">File upload succeeds for valid STL (ASCII and binary) and 3MF files</criterion>
+    <criterion id="SC-3">File validation correctly rejects invalid formats and oversized files</criterion>
+    <criterion id="SC-4">Uploaded files stored in Supabase Storage and accessible via URLs</criterion>
+    <criterion id="SC-5">File metadata persisted in database with all required fields</criterion>
+    <criterion id="SC-6">File paths retrievable and usable for CLI processing in Story 1.3</criterion>
+    <criterion id="SC-7">Error handling provides clear, actionable messages for all failure scenarios</criterion>
+    <criterion id="SC-8">UI is responsive, accessible, and works across Chrome, Firefox, Safari</criterion>
+    <criterion id="SC-9">Code follows architecture conventions (naming, file organization, TypeScript)</criterion>
+    <criterion id="SC-10">No TypeScript compilation errors, no console errors in browser</criterion>
+  </success-criteria>
+
+  <risks-and-mitigations>
+    <risk id="R-1" severity="medium">
+      <description>Supabase Storage upload may be slower than local filesystem</description>
+      <impact>User perceives slower upload times, potential timeout issues</impact>
+      <mitigation>
+        - Acceptable for MVP scale (single file, 100MB max)
+        - Add loading indicator to set expectations
+        - Monitor upload performance in Story 1.3
+        - Consider chunked uploads in Epic 2 if needed
+      </mitigation>
+    </risk>
+
+    <risk id="R-2" severity="low">
+      <description>react-dropzone may have browser compatibility issues</description>
+      <impact>Drag-and-drop may not work in older browsers</impact>
+      <mitigation>
+        - Library well-maintained and widely used
+        - Provide click-to-browse as fallback
+        - Test in all supported browsers (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)
+      </mitigation>
+    </risk>
+
+    <risk id="R-3" severity="medium">
+      <description>CLI may not be able to access Supabase Storage files directly</description>
+      <impact>Requires download step before CLI processing, adding latency</impact>
+      <mitigation>
+        - Accept this trade-off for MVP
+        - Implement download to temp directory in Story 1.3
+        - Public read access enables direct URL download
+        - Future: explore Supabase Storage mounting or local caching
+      </mitigation>
+    </risk>
+
+    <risk id="R-4" severity="low">
+      <description>File size validation may differ between client and server</description>
+      <impact>User may see inconsistent validation errors</impact>
+      <mitigation>
+        - Use same limit (100MB) on both client and server
+        - Client validation is UX optimization, server validation is security requirement
+        - Document that server validation is authoritative
+      </mitigation>
+    </risk>
+  </risks-and-mitigations>
+
+  <handoff-notes>
+    <note target="Story 1.3: Bambu Slicer CLI Integration Spike">
+      - Uploaded files accessible via Supabase Storage public URLs
+      - File paths stored in uploaded_files table, retrievable via database query
+      - CLI will need to download files from Supabase Storage to temp directory for processing
+      - File metadata includes mime_type to differentiate STL ASCII, STL binary, 3MF
+      - Test CLI integration with sample files uploaded through this story's UI
+    </note>
+    <note target="Story 1.4: Configuration Data Model">
+      - uploaded_files table exists with minimal schema
+      - Story 1.4 should create separate tables for comparison_sessions, configurations, results
+      - Foreign key relationship: configurations.uploaded_file_id references uploaded_files.id
+      - Do not modify uploaded_files schema in Story 1.4, only reference it
+    </note>
+  </handoff-notes>
+
+  <dependencies>
+    <npm-dependency name="react-dropzone" version="^14.0.0">
+      Drag-and-drop file upload for React
+    </npm-dependency>
+    <npm-dependency name="multer" version="^1.4.5-lts.1">
+      Middleware for handling multipart/form-data
+    </npm-dependency>
+    <npm-dependency name="@supabase/storage-js" version="^2.5.0">
+      Supabase Storage JavaScript client (may already be included in @supabase/supabase-js)
+    </npm-dependency>
+    <npm-dependency name="file-type" version="^18.0.0">
+      Detect file type and MIME type from buffer
+    </npm-dependency>
+  </dependencies>
+
+  <out-of-scope>
+    <item>Multiple file upload (deferred to Story 1.6: Batch Slicing Engine)</item>
+    <item>Upload progress bar/percentage (deferred to Story 2.3: Enhanced Progress & Error Handling)</item>
+    <item>File preview or thumbnail generation</item>
+    <item>File management UI (list uploaded files, delete files)</item>
+    <item>Session management (deferred to Story 1.4: Configuration Data Model)</item>
+    <item>Advanced file validation (corrupted file detection, mesh validation)</item>
+    <item>Upload resume/retry on network failure</item>
+    <item>Chunked uploads for large files</item>
+    <item>Virus/malware scanning</item>
+  </out-of-scope>
+</story-context>

@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  EPIC-LEVEL CONTEXT CACHE
+  Epic 1: SlicerCompare Foundation & Core Workflow
+
+  This context is REUSABLE across all Epic 1 stories (1.1 through 1.9).
+  Story-specific contexts should load this and merge with story-specific details.
+
+  Cached: 2025-10-30
+  Valid for: All stories with epic_id = 1
+-->
+<epic-context>
+  <epic-metadata>
+    <epic-id>1</epic-id>
+    <epic-title>SlicerCompare Foundation & Core Workflow</epic-title>
+    <epic-goal>
+      Establish the foundational infrastructure for SlicerCompare including React application,
+      Supabase backend, and local development environment. Deliver a working end-to-end comparison
+      workflow that accepts file uploads, integrates with Bambu Slicer CLI for batch processing,
+      and displays comparison results with G-code download capability.
+    </epic-goal>
+    <story-count>9</story-count>
+    <stories>
+      <story id="1.1" status="completed">Project Setup &amp; Infrastructure</story>
+      <story id="1.2" status="in-progress">Single File Upload with Storage</story>
+      <story id="1.3" status="planned">Bambu Slicer CLI Integration Spike</story>
+      <story id="1.4" status="planned">Configuration Data Model</story>
+      <story id="1.5" status="planned">Simple Configuration UI</story>
+      <story id="1.6" status="planned">Batch Slicing Engine</story>
+      <story id="1.7" status="planned">Results Parser &amp; Storage</story>
+      <story id="1.8" status="planned">Comparison Results Display</story>
+      <story id="1.9" status="planned">G-code Download Feature</story>
+    </stories>
+  </epic-metadata>
+
+  <project-context>
+    <project-name>slicercompare</project-name>
+    <project-root>C:\Users\dpmal\projects\slicercompare</project-root>
+    <project-level>2</project-level>
+    <project-description>
+      Automated batch slicing comparison tool for 3D print configuration optimization.
+      Reduces manual comparison workflow from 15-20 minutes to approximately 5 minutes.
+    </project-description>
+    <target-users>
+      <user>Print farm operators</user>
+      <user>3D printing enthusiasts optimizing print settings</user>
+    </target-users>
+  </project-context>
+
+  <technology-stack>
+    <frontend>
+      <framework>React 18+</framework>
+      <language>TypeScript</language>
+      <build-tool>Vite</build-tool>
+      <styling>Tailwind CSS 4.0</styling>
+      <routing>React Router</routing>
+      <state-management>React Context API</state-management>
+    </frontend>
+    <backend>
+      <runtime>Node.js 20.19+ or 22.12+</runtime>
+      <framework>Express 4.x</framework>
+      <language>TypeScript</language>
+      <concurrency>p-limit (3 concurrent CLI processes)</concurrency>
+    </backend>
+    <database>
+      <provider>Supabase (PostgreSQL)</provider>
+      <client>@supabase/supabase-js</client>
+      <connection>Configured in Story 1.1, credentials in .env</connection>
+    </database>
+    <storage>
+      <provider>Supabase Storage (deviation from original ADR-002)</provider>
+      <rationale>Cloud-native, simplifies deployment, already integrated</rationale>
+    </storage>
+    <external-tools>
+      <tool>Bambu Slicer CLI</tool>
+      <purpose>3D model slicing with various configurations</purpose>
+      <integration>Node.js child_process.spawn()</integration>
+    </external-tools>
+    <testing>
+      <unit>Vitest</unit>
+      <component>React Testing Library</component>
+      <e2e>Playwright (Epic 2)</e2e>
+    </testing>
+  </technology-stack>
+
+  <architecture-patterns>
+    <pattern id="client-server">
+      <description>Traditional client-server architecture</description>
+      <frontend>React SPA served by Vite dev server (port 5173)</frontend>
+      <backend>Express API server (port 3001)</backend>
+      <communication>REST API over HTTP with JSON payloads</communication>
+      <proxy>Vite proxies /api requests to backend</proxy>
+    </pattern>
+
+    <pattern id="file-storage">
+      <description>Cloud storage for uploaded files and generated G-code</description>
+      <storage-provider>Supabase Storage</storage-provider>
+      <bucket-structure>
+        <bucket name="uploaded-models">User-uploaded STL and 3MF files</bucket>
+        <bucket name="generated-gcode" future="true">CLI-generated G-code files</bucket>
+      </bucket-structure>
+    </pattern>
+
+    <pattern id="cli-integration">
+      <description>Backend invokes Bambu Slicer CLI for slicing operations</description>
+      <invocation>Node.js child_process.spawn() with argument array (no shell)</invocation>
+      <concurrency>Maximum 3 parallel processes via p-limit</concurrency>
+      <timeout>5 minutes per slicing operation</timeout>
+      <security>Path sanitization, no shell injection</security>
+    </pattern>
+
+    <pattern id="progress-tracking">
+      <description>Frontend polls backend for slicing progress updates</description>
+      <mechanism>HTTP polling every 2 seconds</mechanism>
+      <endpoint>GET /api/sessions/:id/status</endpoint>
+      <alternative-considered>WebSockets (deferred - too complex for MVP)</alternative-considered>
+    </pattern>
+
+    <pattern id="error-handling">
+      <description>Standardized error responses across all API endpoints</description>
+      <format>
+        {
+          "error": {
+            "code": "MACHINE_READABLE_CODE",
+            "message": "User-friendly message",
+            "details": "Technical details (dev mode only)"
+          }
+        }
+      </format>
+      <http-status-codes>
+        <code>200: Success</code>
+        <code>201: Created</code>
+        <code>400: Bad Request (invalid input format)</code>
+        <code>413: Payload Too Large (file size)</code>
+        <code>422: Unprocessable Entity (valid format but can't process)</code>
+        <code>500: Internal Server Error</code>
+      </http-status-codes>
+    </pattern>
+  </architecture-patterns>
+
+  <architectural-constraints>
+    <constraint id="ADR-001" source="docs/architecture.md">
+      <title>Vite + React + TypeScript</title>
+      <description>Frontend built with Vite, React 18+, and TypeScript</description>
+      <rationale>Modern, fast dev experience, type safety, industry standard</rationale>
+      <affects>All Epic 1 frontend stories</affects>
+    </constraint>
+
+    <constraint id="ADR-002-MODIFIED" source="docs/architecture.md + Story 1.2 decision">
+      <title>Supabase Storage (Not Local Filesystem)</title>
+      <description>Files stored in Supabase Storage, not local disk</description>
+      <rationale>Supabase already integrated, cloud-native, simpler deployment</rationale>
+      <trade-off>Slight network overhead vs. local I/O, but acceptable for MVP</trade-off>
+      <affects>Stories 1.2, 1.6, 1.7, 1.9</affects>
+    </constraint>
+
+    <constraint id="ADR-003" source="docs/architecture.md">
+      <title>Node.js Backend with Express</title>
+      <description>Backend built with Node.js and Express for CLI integration</description>
+      <rationale>CLI integration requires Node.js, unified JavaScript/TypeScript stack</rationale>
+      <affects>All Epic 1 backend stories</affects>
+    </constraint>
+
+    <constraint id="ADR-004" source="docs/architecture.md">
+      <title>HTTP Polling for Progress</title>
+      <description>2-second HTTP polling instead of WebSockets</description>
+      <rationale>Simpler, reliable, sufficient for 5-minute processing window</rationale>
+      <affects>Stories 1.6, 2.3</affects>
+    </constraint>
+
+    <constraint id="ADR-005" source="docs/architecture.md">
+      <title>Limited Concurrency (3 Parallel Processes)</title>
+      <description>Maximum 3 concurrent Bambu CLI processes via p-limit</description>
+      <rationale>Meets 5-minute target, prevents resource exhaustion</rationale>
+      <affects>Stories 1.6, 2.5</affects>
+    </constraint>
+
+    <constraint id="ADR-006" source="docs/architecture.md">
+      <title>React Context API for State Management</title>
+      <description>Use built-in React Context instead of external state library</description>
+      <rationale>Sufficient for linear workflow, no external dependencies</rationale>
+      <affects>Stories 1.5, 1.8, Epic 2</affects>
+    </constraint>
+
+    <constraint id="ADR-007" source="docs/architecture.md">
+      <title>Comment-Based G-code Parsing</title>
+      <description>Extract metrics from G-code comment headers using regex</description>
+      <rationale>Standard slicer output format, lightweight, Story 1.3 validates</rationale>
+      <affects>Stories 1.3, 1.7</affects>
+    </constraint>
+  </architectural-constraints>
+
+  <naming-conventions>
+    <database>
+      <tables>snake_case, plural (comparison_sessions, configurations, results, uploaded_files)</tables>
+      <columns>snake_case (session_id, print_time_minutes, created_at)</columns>
+      <foreign-keys>{table}_id format (session_id, configuration_id, uploaded_file_id)</foreign-keys>
+      <timestamps>created_at, updated_at</timestamps>
+    </database>
+
+    <api>
+      <endpoints>/api/{resource} using plural nouns (/api/sessions, /api/configurations, /api/upload)</endpoints>
+      <parameters>:id, :sessionId, :configId</parameters>
+    </api>
+
+    <typescript>
+      <files>kebab-case (bambu-cli.ts, gcode-parser.ts, file-upload.tsx)</files>
+      <components>PascalCase (FileUpload.tsx, ComparisonTable.tsx)</components>
+      <functions>camelCase (invokeBambuSlicer, parseGcode, uploadFile)</functions>
+      <types>PascalCase (Configuration, SlicingResult, UploadedFile)</types>
+      <constants>SCREAMING_SNAKE_CASE (MAX_FILE_SIZE, CLI_TIMEOUT)</constants>
+    </typescript>
+
+    <file-organization>
+      <tests>Co-located with source, .test.ts suffix (gcode-parser.test.ts)</tests>
+      <types>types/index.ts in each major directory</types>
+      <shared>src/shared/types.ts for client/server shared definitions</shared>
+    </file-organization>
+  </naming-conventions>
+
+  <project-structure>
+    <root>C:\Users\dpmal\projects\slicercompare</root>
+    <structure>
+      src/
+      ├── client/              # React frontend
+      │   ├── components/      # React components
+      │   ├── pages/           # Page components (HomePage, ResultsPage)
+      │   ├── contexts/        # React Context providers
+      │   ├── hooks/           # Custom React hooks
+      │   ├── types/           # Frontend TypeScript types
+      │   ├── utils/           # Frontend utilities (api.ts)
+      │   ├── App.tsx          # Main app component with routing
+      │   ├── main.tsx         # Entry point
+      │   └── index.css        # Tailwind CSS directives
+      │
+      ├── server/              # Node.js backend
+      │   ├── index.ts         # Express server entry point
+      │   ├── routes/          # API route handlers
+      │   ├── services/        # Business logic (bambu-cli, gcode-parser, file-storage)
+      │   ├── middleware/      # Express middleware (error-handler, validation)
+      │   ├── types/           # Backend TypeScript types
+      │   └── utils/           # Backend utilities (logger)
+      │
+      └── shared/              # Shared client/server types
+          └── types.ts
+
+      storage/                 # DEPRECATED (using Supabase Storage instead)
+
+      supabase/
+      └── migrations/          # Database schema migrations
+
+      docs/                    # Project documentation
+      ├── PRD.md
+      ├── architecture.md
+      ├── epics.md
+      ├── stories/             # Story markdown files
+      └── contexts/            # Story context XML files
+
+      public/                  # Static assets
+      package.json
+      vite.config.ts
+      tsconfig.json
+      .env                     # Environment variables (SUPABASE_URL, SUPABASE_ANON_KEY, PORT)
+    </structure>
+  </project-structure>
+
+  <development-workflow>
+    <setup>
+      <step>Clone repository</step>
+      <step>Install dependencies: npm install</step>
+      <step>Configure .env with Supabase credentials</step>
+      <step>Run migrations (if any): supabase db push or manual SQL</step>
+    </setup>
+
+    <run-dev>
+      <terminal-1>npm run dev (frontend on http://localhost:5173)</terminal-1>
+      <terminal-2>npm run server (backend on http://localhost:3001)</terminal-2>
+    </run-dev>
+
+    <scripts>
+      <script name="dev">Vite frontend dev server</script>
+      <script name="server">tsx watch src/server/index.ts (backend with hot reload)</script>
+      <script name="build">TypeScript compilation + Vite build</script>
+      <script name="test">Vitest unit tests</script>
+      <script name="lint">ESLint</script>
+    </scripts>
+  </development-workflow>
+
+  <common-interfaces>
+    <interface name="ApiError">
+      {
+        error: {
+          code: string;      // Machine-readable (e.g., 'INVALID_FILE', 'CLI_TIMEOUT')
+          message: string;   // User-friendly message
+          details?: string;  // Technical details (dev mode only)
+        }
+      }
+    </interface>
+
+    <interface name="UploadedFile">
+      {
+        id: string;          // UUID
+        filename: string;    // Original filename
+        filePath: string;    // Supabase Storage path
+        fileSize: number;    // Bytes
+        mimeType: string;    // MIME type
+        uploadedAt: string;  // ISO timestamp
+        status: 'uploaded' | 'processing' | 'completed' | 'failed';
+      }
+    </interface>
+  </common-interfaces>
+
+  <performance-requirements>
+    <requirement id="NFR001">
+      <title>5-Minute Processing Target</title>
+      <description>Batch slicing for 3-5 configurations must complete within 5 minutes</description>
+      <strategy>3 parallel CLI processes, local temp storage for processing</strategy>
+      <affects>Stories 1.6, 2.5</affects>
+    </requirement>
+  </performance-requirements>
+
+  <security-guidelines>
+    <guideline>All file paths must be sanitized with path.resolve() to prevent directory traversal</guideline>
+    <guideline>Never use shell: true with child_process - always pass arguments as array</guideline>
+    <guideline>Validate file types on both client (UX) and server (security)</guideline>
+    <guideline>Enforce file size limits to prevent storage exhaustion and abuse</guideline>
+    <guideline>Supabase Storage buckets should have appropriate access policies (public read for CLI access)</guideline>
+    <guideline>Environment variables (.env) must never be committed to version control</guideline>
+    <guideline>Error messages should not expose sensitive system information in production</guideline>
+  </security-guidelines>
+
+  <testing-standards>
+    <unit-tests>
+      <coverage-target>85%+ for business logic</coverage-target>
+      <location>Co-located with source files (*.test.ts)</location>
+      <framework>Vitest</framework>
+      <patterns>
+        - Test validation logic exhaustively (all edge cases)
+        - Mock external dependencies (Supabase, CLI, filesystem)
+        - Test error handling for all failure scenarios
+      </patterns>
+    </unit-tests>
+
+    <integration-tests>
+      <coverage-target>Critical paths (upload → slicing → results)</coverage-target>
+      <location>tests/integration/</location>
+      <framework>Vitest with supertest for API testing</framework>
+      <patterns>
+        - Test complete workflows end-to-end
+        - Use test database (Supabase test project)
+        - Verify database state after operations
+      </patterns>
+    </integration-tests>
+
+    <manual-tests>
+      <browser-compatibility>Chrome 90+, Firefox 88+, Safari 14+, Edge 90+</browser-compatibility>
+      <accessibility>Keyboard navigation, screen reader compatibility</accessibility>
+      <visual>UI responsiveness, loading states, error displays</visual>
+    </manual-tests>
+  </testing-standards>
+
+  <epic-context-cache-metadata>
+    <created>2025-10-30</created>
+    <valid-for-epic>1</valid-for-epic>
+    <valid-for-stories>1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9</valid-for-stories>
+    <usage>
+      Story-specific contexts should load this epic context and merge with:
+      - Story-specific acceptance criteria
+      - Story-specific implementation steps
+      - Story-specific test cases
+      - Story-specific files to create/modify
+    </usage>
+  </epic-context-cache-metadata>
+</epic-context>

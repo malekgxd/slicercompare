@@ -1,0 +1,700 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  STORY CONTEXT: Story 1.5 - Simple Configuration UI
+  Generated: 2025-10-31
+  Epic: Epic 1 - SlicerCompare Foundation & Core Workflow
+
+  This context EXTENDS epic-1-context.xml with story-specific details.
+  Always load epic context first, then merge with this story context.
+-->
+<story-context>
+  <story-metadata>
+    <story-id>1.5</story-id>
+    <story-title>Simple Configuration UI</story-title>
+    <epic-id>1</epic-id>
+    <epic-context-path>docs/contexts/epic-1-context.xml</epic-context-path>
+    <story-type>feature</story-type>
+    <estimated-effort>97 hours (~2.5 weeks)</estimated-effort>
+    <complexity>moderate</complexity>
+    <created>2025-10-31</created>
+    <status>Draft</status>
+  </story-metadata>
+
+  <inherit-epic-context>
+    <path>docs/contexts/epic-1-context.xml</path>
+    <sections-to-inherit>
+      <section>technology-stack</section>
+      <section>architecture-patterns</section>
+      <section>architectural-constraints</section>
+      <section>naming-conventions</section>
+      <section>project-structure</section>
+      <section>security-guidelines</section>
+    </sections-to-inherit>
+  </inherit-epic-context>
+
+  <story-specific-context>
+    <goal>
+      Create a simple, accessible React UI for managing slicer configurations within comparison sessions,
+      allowing users to create, edit, and manage 2-3 configurations with validated parameters before
+      triggering batch slicing (Story 1.6). Focus on functional data entry, not polished UX.
+    </goal>
+
+    <acceptance-criteria>
+      <criterion id="AC1">
+        <description>Session Management: User can view session context</description>
+        <validation>Session header displays name, uploaded file, configuration count</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC2">
+        <description>Create Configuration: User can create new configuration</description>
+        <validation>Form accepts 4 required + 5 optional parameters, saves to database via Supabase</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC3">
+        <description>Edit Configuration: User can edit existing configuration</description>
+        <validation>Edit button opens modal with pre-filled values, saves updates to database</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC4">
+        <description>Delete Configuration: User can delete configuration</description>
+        <validation>Delete button shows confirmation dialog, removes from database and UI</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC5">
+        <description>Duplicate Configuration: User can duplicate existing configuration</description>
+        <validation>Duplicate button creates copy with auto-incremented name</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC6">
+        <description>Configuration Limit: UI enforces max 3 active configurations</description>
+        <validation>"Add Configuration" button disabled when 3 active configs exist, error toast on attempt</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC7">
+        <description>Parameter Validation: Client-side validation enforces rules</description>
+        <validation>Inline error messages for invalid inputs, save button disabled when form invalid</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC8">
+        <description>File Linking: Configuration links to uploaded STL file</description>
+        <validation>Form includes file selector, configurations.input_file_id references uploaded_files.id</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC9">
+        <description>Loading States: UI shows appropriate loading indicators</description>
+        <validation>Skeleton loaders during fetch, spinners during save/delete</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC10">
+        <description>Empty States: UI shows helpful empty state messages</description>
+        <validation>Empty state with CTA when zero configurations exist</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC11">
+        <description>Error Handling: UI handles errors gracefully</description>
+        <validation>Network errors show retry button, validation errors show inline messages</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC12">
+        <description>Responsive Design: UI works on all device sizes</description>
+        <validation>Functional on mobile (320px+), tablet (768px+), desktop (1024px+)</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC13">
+        <description>Accessibility: WCAG 2.1 Level AA compliance</description>
+        <validation>Keyboard navigation, ARIA labels, screen reader support, color contrast ≥4.5:1</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC14">
+        <description>Run Comparison Button: Button triggers Story 1.6 workflow</description>
+        <validation>Button appears when 2+ configs exist, disabled otherwise, triggers slicing on click</validation>
+        <priority>must-have</priority>
+      </criterion>
+    </acceptance-criteria>
+
+    <parameter-schema>
+      <description>Configuration parameters from Story 1.3 CLI spike and Story 1.4 database schema</description>
+      <required-parameters>
+        <parameter name="name" type="string">
+          <validation>required, max 100 chars</validation>
+          <ui-component>TextInput</ui-component>
+        </parameter>
+        <parameter name="layer_height" type="number">
+          <validation>required, 0.05-0.4, step 0.01</validation>
+          <ui-component>RangeSlider</ui-component>
+          <unit>mm</unit>
+        </parameter>
+        <parameter name="infill_density" type="integer">
+          <validation>required, 0-100</validation>
+          <ui-component>RangeSlider</ui-component>
+          <unit>%</unit>
+        </parameter>
+        <parameter name="support_type" type="enum">
+          <validation>required, values: none, normal, tree</validation>
+          <ui-component>Select</ui-component>
+          <options>
+            <option value="none">No Supports</option>
+            <option value="normal">Normal Supports</option>
+            <option value="tree">Tree Supports</option>
+          </options>
+        </parameter>
+        <parameter name="printer_model" type="enum">
+          <validation>required, values: X1_Carbon, P1P, P1S, A1_Mini</validation>
+          <ui-component>Select</ui-component>
+          <options>
+            <option value="X1_Carbon">Bambu Lab X1 Carbon</option>
+            <option value="P1P">Bambu Lab P1P</option>
+            <option value="P1S">Bambu Lab P1S</option>
+            <option value="A1_Mini">Bambu Lab A1 Mini</option>
+          </options>
+        </parameter>
+      </required-parameters>
+
+      <optional-parameters>
+        <description>Advanced settings, collapsible section in form</description>
+        <parameter name="print_speed" type="number">
+          <validation>optional, 50-500</validation>
+          <unit>mm/s</unit>
+        </parameter>
+        <parameter name="nozzle_temperature" type="integer">
+          <validation>optional, 180-300</validation>
+          <unit>°C</unit>
+        </parameter>
+        <parameter name="bed_temperature" type="integer">
+          <validation>optional, 0-120</validation>
+          <unit>°C</unit>
+        </parameter>
+        <parameter name="wall_thickness" type="number">
+          <validation>optional, 0.4-10.0</validation>
+          <unit>mm</unit>
+        </parameter>
+        <parameter name="top_bottom_thickness" type="number">
+          <validation>optional, 0.2-5.0</validation>
+          <unit>mm</unit>
+        </parameter>
+      </optional-parameters>
+    </parameter-schema>
+
+    <component-breakdown>
+      <page-components>
+        <component name="SessionDetailPage" path="pages/SessionDetailPage.tsx">
+          <route>/sessions/:id</route>
+          <responsibilities>
+            <responsibility>Display session metadata (name, file, config count)</responsibility>
+            <responsibility>Render configuration list (ConfigurationCard components)</responsibility>
+            <responsibility>Show "Add Configuration" and "Run Comparison" buttons</responsibility>
+            <responsibility>Handle empty state when zero configurations</responsibility>
+            <responsibility>Manage SessionContext provider</responsibility>
+          </responsibilities>
+        </component>
+      </page-components>
+
+      <ui-components>
+        <component name="ConfigurationCard" path="components/configuration/ConfigurationCard.tsx">
+          <props>configuration, onEdit, onDelete, onDuplicate</props>
+          <responsibilities>
+            <responsibility>Display config name, "Active" badge, key parameters</responsibility>
+            <responsibility>Action buttons: Edit, Duplicate, Delete</responsibility>
+            <responsibility>Expandable details section for all parameters</responsibility>
+          </responsibilities>
+        </component>
+
+        <component name="ConfigurationFormModal" path="components/configuration/ConfigurationFormModal.tsx">
+          <props>isOpen, onClose, onSave, initialValues (optional)</props>
+          <responsibilities>
+            <responsibility>Render all parameter inputs (required + optional)</responsibility>
+            <responsibility>Collapsible "Advanced Settings" section</responsibility>
+            <responsibility>Real-time validation with inline errors</responsibility>
+            <responsibility>Cancel and Save buttons with loading states</responsibility>
+            <responsibility>Unsaved changes warning on close</responsibility>
+          </responsibilities>
+        </component>
+
+        <component name="LoadingSpinner" path="components/ui/LoadingSpinner.tsx">
+          <props>size (sm, md, lg)</props>
+        </component>
+
+        <component name="SkeletonLoader" path="components/ui/SkeletonLoader.tsx">
+          <props>type (card, form, list)</props>
+        </component>
+
+        <component name="EmptyState" path="components/ui/EmptyState.tsx">
+          <props>message, actionLabel, onAction</props>
+        </component>
+
+        <component name="ErrorToast" path="components/ui/ErrorToast.tsx">
+          <props>message, type (error, success, warning)</props>
+        </component>
+
+        <component name="ConfirmationDialog" path="components/ui/ConfirmationDialog.tsx">
+          <props>isOpen, title, message, onConfirm, onCancel</props>
+        </component>
+      </ui-components>
+
+      <form-components>
+        <component name="LayerHeightSlider" path="components/forms/LayerHeightSlider.tsx">
+          <props>value, onChange, error</props>
+          <validation>0.05-0.4mm, step 0.01mm</validation>
+        </component>
+
+        <component name="InfillDensitySlider" path="components/forms/InfillDensitySlider.tsx">
+          <props>value, onChange, error</props>
+          <validation>0-100%, step 1%</validation>
+        </component>
+
+        <component name="SupportTypeSelect" path="components/forms/SupportTypeSelect.tsx">
+          <props>value, onChange, error</props>
+        </component>
+
+        <component name="PrinterModelSelect" path="components/forms/PrinterModelSelect.tsx">
+          <props>value, onChange, error</props>
+        </component>
+
+        <component name="ConfigurationNameInput" path="components/forms/ConfigurationNameInput.tsx">
+          <props>value, onChange, error</props>
+          <validation>required, max 100 chars</validation>
+        </component>
+      </form-components>
+    </component-breakdown>
+
+    <supabase-integration>
+      <client-setup>
+        <file path="lib/supabase/client.ts">
+          <purpose>Browser Supabase client for frontend components</purpose>
+          <exports>createClient() function</exports>
+        </file>
+        <file path="lib/supabase/server.ts">
+          <purpose>Server Supabase client for API routes (future)</purpose>
+          <exports>createServerClient() function</exports>
+        </file>
+      </client-setup>
+
+      <type-generation>
+        <file path="types/database.ts">
+          <purpose>Generated TypeScript types from Supabase schema</purpose>
+          <command>npx supabase gen types typescript --project-id [PROJECT_ID] > types/database.ts</command>
+        </file>
+      </type-generation>
+
+      <query-patterns>
+        <query name="getConfigurations">
+          <description>Fetch all configurations for a session</description>
+          <code>
+            const { data, error } = await supabase
+              .from('configurations')
+              .select('*')
+              .eq('session_id', sessionId)
+              .order('created_at', { ascending: true });
+          </code>
+        </query>
+
+        <query name="createConfiguration">
+          <description>Insert new configuration</description>
+          <code>
+            const { data, error } = await supabase
+              .from('configurations')
+              .insert({
+                session_id: sessionId,
+                input_file_id: fileId,
+                config_name: name,
+                parameters: parameterObject,
+                is_active: true
+              })
+              .select()
+              .single();
+          </code>
+        </query>
+
+        <query name="updateConfiguration">
+          <description>Update existing configuration</description>
+          <code>
+            const { data, error } = await supabase
+              .from('configurations')
+              .update({
+                config_name: name,
+                parameters: parameterObject,
+                updated_at: new Date().toISOString()
+              })
+              .eq('config_id', configId)
+              .select()
+              .single();
+          </code>
+        </query>
+
+        <query name="deleteConfiguration">
+          <description>Delete configuration</description>
+          <code>
+            const { error } = await supabase
+              .from('configurations')
+              .delete()
+              .eq('config_id', configId);
+          </code>
+        </query>
+      </query-patterns>
+
+      <rls-policies>
+        <policy table="configurations" operation="SELECT">
+          <condition>session_id IN (SELECT session_id FROM comparison_sessions WHERE user_id = auth.uid())</condition>
+        </policy>
+        <policy table="configurations" operation="INSERT">
+          <condition>session_id IN (SELECT session_id FROM comparison_sessions WHERE user_id = auth.uid())</condition>
+        </policy>
+        <policy table="configurations" operation="UPDATE">
+          <condition>session_id IN (SELECT session_id FROM comparison_sessions WHERE user_id = auth.uid())</condition>
+        </policy>
+        <policy table="configurations" operation="DELETE">
+          <condition>session_id IN (SELECT session_id FROM comparison_sessions WHERE user_id = auth.uid())</condition>
+        </policy>
+      </rls-policies>
+    </supabase-integration>
+
+    <integration-points>
+      <integration name="story-1-2-file-selection">
+        <description>Link configurations to uploaded STL files</description>
+        <foreign-key>configurations.input_file_id → uploaded_files.id (SET NULL)</foreign-key>
+        <ui-integration>
+          <approach>Reuse FileUpload component from Story 1.2 if available</approach>
+          <fallback>Display file name + "Change File" link that navigates to upload page</fallback>
+        </ui-integration>
+      </integration>
+
+      <integration name="story-1-4-database-schema">
+        <description>Use comparison_sessions and configurations tables</description>
+        <tables>
+          <table>comparison_sessions</table>
+          <table>configurations</table>
+        </tables>
+        <schema-reference>docs/DATABASE.md from Story 1.4</schema-reference>
+      </integration>
+
+      <integration name="story-1-6-slicing-trigger">
+        <description>"Run Comparison" button triggers batch slicing workflow</description>
+        <button-placement>SessionDetailPage, below configuration list</button-placement>
+        <button-state>Disabled when less than 2 configurations exist</button-state>
+        <button-action>Navigate to Story 1.6 slicing page with sessionId parameter</button-action>
+        <data-contract>
+          <description>Story 1.6 queries active configurations from database</description>
+          <query>SELECT * FROM configurations WHERE session_id = ? AND is_active = true</query>
+        </data-contract>
+      </integration>
+    </integration-points>
+
+    <validation-strategy>
+      <client-side-validation>
+        <approach>React Hook Form with Zod schema resolver</approach>
+        <timing>Validate on blur for each field, validate all on submit</timing>
+        <error-display>Inline error messages below each field</error-display>
+        <file path="utils/validation.ts">
+          <exports>
+            <export>validateLayerHeight(value: number): string | null</export>
+            <export>validateInfillDensity(value: number): string | null</export>
+            <export>validateSupportType(value: string): string | null</export>
+            <export>validatePrinterModel(value: string): string | null</export>
+            <export>validateConfigurationName(value: string): string | null</export>
+          </exports>
+        </file>
+      </client-side-validation>
+
+      <server-side-validation>
+        <approach>Supabase database constraints + CHECK constraints</approach>
+        <constraints>
+          <constraint>configurations.parameters JSONB type validation</constraint>
+          <constraint>NOT NULL on required fields</constraint>
+          <constraint>Foreign key constraints</constraint>
+          <constraint>Max 3 active configs per session (trigger in Story 1.4)</constraint>
+        </constraints>
+      </server-side-validation>
+    </validation-strategy>
+
+    <error-handling-strategy>
+      <error-categories>
+        <category name="validation-errors">
+          <examples>Missing required field, invalid numeric range, invalid enum value</examples>
+          <handling>Show inline error messages, disable save button, preserve form state</handling>
+        </category>
+
+        <category name="network-errors">
+          <examples>Connection timeout, offline mode, DNS failure</examples>
+          <handling>Show error toast with retry button, preserve form state, queue for retry</handling>
+        </category>
+
+        <category name="server-errors">
+          <examples>Supabase RLS policy violation, database constraint violation</examples>
+          <handling>Show error toast with server message, preserve form state, allow retry</handling>
+        </category>
+
+        <category name="client-errors">
+          <examples>Component rendering error, state management error</examples>
+          <handling>Error boundary catches, display fallback UI, log error, offer reload</handling>
+        </category>
+      </error-categories>
+
+      <error-boundary>
+        <location>SessionDetailPage root</location>
+        <fallback>Full-page error message with "Reload Page" button</fallback>
+      </error-boundary>
+
+      <retry-logic>
+        <automatic-retry>Up to 3 attempts with exponential backoff (1s, 2s, 4s)</automatic-retry>
+        <manual-retry>Retry button in error toast</manual-retry>
+      </retry-logic>
+    </error-handling-strategy>
+
+    <testing-requirements>
+      <unit-tests>
+        <framework>Vitest</framework>
+        <coverage-target>80%+ for validation and utility functions</coverage-target>
+        <test-files>
+          <file>__tests__/utils/validation.test.ts</file>
+          <file>__tests__/lib/supabase.test.ts</file>
+        </test-files>
+      </unit-tests>
+
+      <component-tests>
+        <framework>React Testing Library</framework>
+        <coverage-target>70%+ for UI components</coverage-target>
+        <test-files>
+          <file>__tests__/components/ConfigurationCard.test.tsx</file>
+          <file>__tests__/components/ConfigurationFormModal.test.tsx</file>
+          <file>__tests__/components/forms/*.test.tsx</file>
+        </test-files>
+      </component-tests>
+
+      <integration-tests>
+        <framework>Playwright</framework>
+        <test-scenarios>
+          <scenario>Create configuration flow (navigate → fill → save → verify)</scenario>
+          <scenario>Edit configuration flow (open → modify → save → verify)</scenario>
+          <scenario>Delete configuration flow (delete → confirm → verify)</scenario>
+          <scenario>Duplicate configuration flow (duplicate → modify → save → verify)</scenario>
+        </test-scenarios>
+      </integration-tests>
+
+      <manual-tests>
+        <test>Browser compatibility (Chrome, Firefox, Safari, Edge)</test>
+        <test>Responsive design (1920x1080, 1366x768, 768x1024, 375x667)</test>
+        <test>Accessibility (keyboard nav, screen reader)</test>
+        <test>Network error recovery (disable network, attempt save, verify retry)</test>
+      </manual-tests>
+    </testing-requirements>
+
+    <accessibility-requirements>
+      <wcag-level>AA</wcag-level>
+      <requirements>
+        <requirement>Color contrast ≥ 4.5:1 for normal text</requirement>
+        <requirement>All interactive elements keyboard accessible (Tab, Enter, Esc)</requirement>
+        <requirement>Form inputs have associated labels</requirement>
+        <requirement>Error messages announced by screen readers (aria-live="polite")</requirement>
+        <requirement>Modals have focus trap (focus does not leave modal)</requirement>
+        <requirement>All images have alt text</requirement>
+        <requirement>Buttons have accessible names (aria-label if icon-only)</requirement>
+      </requirements>
+    </accessibility-requirements>
+
+    <responsive-design>
+      <breakpoints>
+        <breakpoint name="mobile" range="320-767px">
+          <layout>Single column, full-width form</layout>
+          <touch-targets>Minimum 44x44px</touch-targets>
+          <font-size>Minimum 16px (prevent zoom on focus)</font-size>
+        </breakpoint>
+        <breakpoint name="tablet" range="768-1023px">
+          <layout>Two column configuration list</layout>
+        </breakpoint>
+        <breakpoint name="desktop" range="1024px+">
+          <layout>Three column configuration list</layout>
+        </breakpoint>
+      </breakpoints>
+    </responsive-design>
+
+    <performance-targets>
+      <target name="form-submission-latency">
+        <description>Time from "Save" click to success toast</description>
+        <goal>500ms under normal network conditions (less than 100ms latency)</goal>
+      </target>
+
+      <target name="configuration-list-query">
+        <description>Time to fetch and render configurations</description>
+        <goal>500ms for sessions with less than 10 configurations</goal>
+      </target>
+
+      <target name="validation-responsiveness">
+        <description>Time from blur to error message display</description>
+        <goal>100ms (no perceptible lag)</goal>
+      </target>
+
+      <target name="optimistic-update">
+        <description>Time from delete click to card removal</description>
+        <goal>50ms (immediate visual feedback)</goal>
+      </target>
+    </performance-targets>
+
+    <scope-boundaries>
+      <in-scope>
+        <item>Configuration CRUD operations (create, read, update, delete)</item>
+        <item>4 required + 5 optional parameters</item>
+        <item>File linking to uploaded STL from Story 1.2</item>
+        <item>2-3 configuration limit enforcement in UI</item>
+        <item>"Run Comparison" button placement</item>
+        <item>Basic validation and error handling</item>
+        <item>Responsive design (mobile/tablet/desktop)</item>
+        <item>WCAG 2.1 Level AA accessibility</item>
+      </in-scope>
+
+      <out-of-scope>
+        <item>Configuration templates/presets (Epic 2)</item>
+        <item>Parameter recommendations (Epic 2)</item>
+        <item>Advanced validation (printer-specific constraints) (Epic 2)</item>
+        <item>Slicing execution (Story 1.6)</item>
+        <item>Progress indicators during slicing (Story 1.6)</item>
+        <item>Results display (Story 1.8)</item>
+        <item>Multi-session management (Epic 2+)</item>
+        <item>Configuration history/versioning (Epic 3+)</item>
+        <item>Real-time collaborative editing (Epic 3+)</item>
+      </out-of-scope>
+    </scope-boundaries>
+
+    <blockers-and-risks>
+      <blocker id="BLOCK-1">
+        <description>Supabase client not set up</description>
+        <impact>Cannot implement any data persistence</impact>
+        <resolution>Create lib/supabase/client.ts before any other work (2 hours)</resolution>
+      </blocker>
+
+      <blocker id="BLOCK-2">
+        <description>Database schema not deployed to Supabase</description>
+        <impact>Queries will fail if tables don't exist</impact>
+        <resolution>Run Story 1.4 migration scripts (1 hour)</resolution>
+      </blocker>
+
+      <risk id="RISK-1" severity="high">
+        <description>"Active" configuration logic ambiguous</description>
+        <mitigation>Assume "active" = selected for next comparison run (is_active boolean)</mitigation>
+      </risk>
+
+      <risk id="RISK-2" severity="high">
+        <description>Session-file relationship unclear</description>
+        <mitigation>Review Story 1.2 schema, assume configurations.input_file_id FK</mitigation>
+      </risk>
+
+      <risk id="RISK-3" severity="medium">
+        <description>Printer model data source not defined</description>
+        <mitigation>Hardcode 4 Bambu Lab models for MVP (extensible later)</mitigation>
+      </risk>
+    </blockers-and-risks>
+
+    <implementation-order>
+      <phase order="1" name="Foundation Setup" estimated="6 hours">
+        <tasks>
+          <task>Create Supabase client wrapper (lib/supabase/client.ts)</task>
+          <task>Generate database types (types/database.ts)</task>
+          <task>Create validation utilities (utils/validation.ts)</task>
+          <task>Write unit tests for validation</task>
+        </tasks>
+      </phase>
+
+      <phase order="2" name="Base UI Components" estimated="8 hours">
+        <tasks>
+          <task>Create LoadingSpinner, SkeletonLoader, EmptyState</task>
+          <task>Create ErrorToast, ConfirmationDialog</task>
+          <task>Test all base components</task>
+        </tasks>
+      </phase>
+
+      <phase order="3" name="Form Input Components" estimated="12 hours">
+        <tasks>
+          <task>Create LayerHeightSlider with validation</task>
+          <task>Create InfillDensitySlider with validation</task>
+          <task>Create SupportTypeSelect, PrinterModelSelect</task>
+          <task>Create ConfigurationNameInput</task>
+          <task>Test all form components</task>
+        </tasks>
+      </phase>
+
+      <phase order="4" name="Configuration Components" estimated="16 hours">
+        <tasks>
+          <task>Create ConfigurationCard component</task>
+          <task>Create ConfigurationFormModal component</task>
+          <task>Implement CRUD operations with Supabase</task>
+          <task>Add optimistic updates for delete</task>
+          <task>Test configuration components</task>
+        </tasks>
+      </phase>
+
+      <phase order="5" name="SessionDetailPage" estimated="12 hours">
+        <tasks>
+          <task>Create SessionDetailPage component</task>
+          <task>Integrate ConfigurationCard list</task>
+          <task>Add "Add Configuration" and "Run Comparison" buttons</task>
+          <task>Handle empty state</task>
+          <task>Test page integration</task>
+        </tasks>
+      </phase>
+
+      <phase order="6" name="Error Handling & Loading" estimated="8 hours">
+        <tasks>
+          <task>Implement error boundary</task>
+          <task>Add loading states (skeleton, spinners)</task>
+          <task>Add retry logic for network errors</task>
+          <task>Test error scenarios</task>
+        </tasks>
+      </phase>
+
+      <phase order="7" name="Responsive & Accessibility" estimated="14 hours">
+        <tasks>
+          <task>Implement responsive breakpoints</task>
+          <task>Add keyboard navigation</task>
+          <task>Add ARIA labels</task>
+          <task>Test accessibility (keyboard, screen reader)</task>
+          <task>Test responsive design (mobile, tablet, desktop)</task>
+        </tasks>
+      </phase>
+
+      <phase order="8" name="Integration Testing" estimated="10 hours">
+        <tasks>
+          <task>Write Playwright integration tests</task>
+          <task>Test create/edit/delete/duplicate flows</task>
+          <task>Test network error recovery</task>
+          <task>Manual browser compatibility testing</task>
+        </tasks>
+      </phase>
+
+      <phase order="9" name="Polish & Bug Fixes" estimated="11 hours">
+        <tasks>
+          <task>Address test failures</task>
+          <task>Fix accessibility issues</task>
+          <task>Fix responsive design issues</task>
+          <task>Final QA pass</task>
+        </tasks>
+      </phase>
+    </implementation-order>
+
+    <success-criteria>
+      <criterion>All 14 acceptance criteria met and tested</criterion>
+      <criterion>Supabase client setup complete with typed queries</criterion>
+      <criterion>Configuration CRUD operations work correctly</criterion>
+      <criterion>Max 3 configuration limit enforced</criterion>
+      <criterion>Form validation prevents invalid submissions</criterion>
+      <criterion>UI responsive on mobile/tablet/desktop</criterion>
+      <criterion>WCAG 2.1 Level AA accessibility compliance verified</criterion>
+      <criterion>"Run Comparison" button correctly triggers Story 1.6</criterion>
+      <criterion>80%+ test coverage for validation/utilities</criterion>
+      <criterion>70%+ test coverage for components</criterion>
+      <criterion>All integration tests passing</criterion>
+      <criterion>Manual browser compatibility testing complete</criterion>
+    </success-criteria>
+  </story-specific-context>
+</story-context>

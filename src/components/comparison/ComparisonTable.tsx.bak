@@ -1,0 +1,311 @@
+/**
+ * Comparison Table Component
+ * Story 1.8: Comparison Results Display
+ *
+ * Displays side-by-side comparison of slicing results for all configurations.
+ * Polls for real-time updates during batch slicing.
+ */
+
+'use client';
+
+import { useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase/client';
+import { useComparisonResults, type ComparisonResult } from '@/hooks/useComparisonResults';
+import { formatPrintTime, formatFilament, formatSupport, withParsingErrorFallback } from '@/utils/formatting';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
+
+interface ComparisonTableProps {
+  sessionId: string;
+}
+
+/**
+ * Full result data with metrics from Supabase
+ */
+interface ResultWithMetrics {
+  configuration_id: string;
+  print_time_minutes: number;
+  filament_usage_grams: { total: number; [color: string]: number };
+  support_material_grams: number;
+  parsing_error: string | null;
+}
+
+/**
+ * Comparison Table - displays slicing results side-by-side
+ *
+ * Features:
+ * - Real-time polling for progress updates
+ * - Loading states for configurations being processed
+ * - Graceful error handling for parsing failures
+ * - Formatted metrics (time, filament, support)
+ *
+ * @example
+ * <ComparisonTable sessionId="session-uuid-123" />
+ */
+export function ComparisonTable({ sessionId }: ComparisonTableProps) {
+  const [resultsWithMetrics, setResultsWithMetrics] = useState<Map<string, ResultWithMetrics>>(new Map());
+  const [isLoadingMetrics, setIsLoadingMetrics] = useState(false);
+
+  // Poll session status for real-time updates
+  const {
+    results,
+    isLoading: isLoadingStatus,
+    error: statusError,
+    allComplete,
+    progress
+  } = useComparisonResults({
+    sessionId,
+    onAllComplete: () => {
+      console.log('[ComparisonTable] All configurations complete');
+    }
+  });
+
+  /**
+   * Fetch full results with metrics from Supabase
+   */
+  const fetchResultsWithMetrics = async () => {
+    setIsLoadingMetrics(true);
+
+    try {
+      const { data, error } = await supabase
+        .from('results')
+        .select(`
+          configuration_id,
+          print_time_minutes,
+          filament_usage_grams,
+          support_material_grams,
+          parsing_error
+        `)
+        .in('configuration_id', results.map(r => r.configurationId));
+
+      if (error) {
+        console.error('[ComparisonTable] Error fetching results:', error);
+        return;
+      }
+
+      if (data) {
+        const metricsMap = new Map<string, ResultWithMetrics>();
+        data.forEach((result: any) => {
+          metricsMap.set(result.configuration_id, result);
+        });
+        setResultsWithMetrics(metricsMap);
+      }
+    } catch (error) {
+      console.error('[ComparisonTable] Error fetching metrics:', error);
+    } finally {
+      setIsLoadingMetrics(false);
+    }
+  };
+
+  // Fetch metrics when results update
+  useEffect(() => {
+    if (results.length > 0) {
+      fetchResultsWithMetrics();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [results]);
+
+  // Handle errors
+  if (statusError) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-6">
+        <div className="flex items-center gap-3">
+          <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <h3 className="text-sm font-medium text-red-800">Error Loading Results</h3>
+            <p className="mt-1 text-sm text-red-700">{statusError.message}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Initial loading state
+  if (isLoadingStatus && results.length === 0) {
+    return (
+      <div className="space-y-4">
+        <SkeletonLoader type="list" />
+      </div>
+    );
+  }
+
+  // No results yet
+  if (results.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-gray-50 p-12 text-center">
+        <div className="mx-auto h-12 w-12 text-gray-400">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <h3 className="mt-4 text-lg font-medium text-gray-900">No Results Yet</h3>
+        <p className="mt-2 text-sm text-gray-600">
+          Start batch slicing to see comparison results here.
+        </p>
+      </div>
+    );
+  }
+
+  /**
+   * Get metric value with status-aware display
+   */
+  const getMetricDisplay = (configId: string, status: string, getMetric: (metrics: ResultWithMetrics) => string): string => {
+    if (status === 'queued') {
+      return 'Queued';
+    }
+    if (status === 'slicing') {
+      return 'Processing...';
+    }
+    if (status === 'failed') {
+      return 'Failed';
+    }
+
+    const metrics = resultsWithMetrics.get(configId);
+    if (!metrics) {
+      return isLoadingMetrics ? 'Loading...' : '—';
+    }
+
+    const hasError = metrics.parsing_error !== null;
+    const value = getMetric(metrics);
+    return withParsingErrorFallback(value, hasError);
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Progress Summary */}
+      {!allComplete && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <LoadingSpinner size="sm" />
+              <div>
+                <p className="text-sm font-medium text-blue-900">
+                  Processing Configurations
+                </p>
+                <p className="text-sm text-blue-700">
+                  {progress.completedCount} of {progress.totalCount} complete
+                  {progress.failedCount > 0 && ` · ${progress.failedCount} failed`}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Comparison Table */}
+      <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+        <table className="w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                Configuration
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                Print Time
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                Filament
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                Support
+              </th>
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200 bg-white">
+            {results.map((result) => {
+              const metrics = resultsWithMetrics.get(result.configurationId);
+              const hasParsingError = metrics?.parsing_error !== null;
+
+              return (
+                <tr key={result.configurationId} className="hover:bg-gray-50 transition-colors">
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <div className="flex items-center">
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {result.configurationName}
+                        </div>
+                        {result.errorMessage && (
+                          <div className="mt-1 text-xs text-red-600">
+                            {result.errorMessage}
+                          </div>
+                        )}
+                        {hasParsingError && (
+                          <div className="mt-1 text-xs text-amber-600">
+                            Parsing error: {metrics?.parsing_error}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                    {getMetricDisplay(
+                      result.configurationId,
+                      result.status,
+                      (m) => formatPrintTime(m.print_time_minutes)
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                    {getMetricDisplay(
+                      result.configurationId,
+                      result.status,
+                      (m) => formatFilament(m.filament_usage_grams)
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">
+                    {getMetricDisplay(
+                      result.configurationId,
+                      result.status,
+                      (m) => formatSupport(m.support_material_grams)
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap px-6 py-4">
+                    <span
+                      className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                        result.status === 'complete'
+                          ? 'bg-green-100 text-green-800'
+                          : result.status === 'failed'
+                          ? 'bg-red-100 text-red-800'
+                          : result.status === 'slicing'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {result.status === 'complete' ? '✓ Complete' :
+                       result.status === 'failed' ? '✗ Failed' :
+                       result.status === 'slicing' ? 'Slicing...' :
+                       'Queued'}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Completion Message */}
+      {allComplete && progress.failedCount === 0 && (
+        <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+          <div className="flex items-center gap-3">
+            <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-green-900">
+                All configurations processed successfully
+              </p>
+              <p className="text-sm text-green-700">
+                You can now download G-code files or start a new comparison.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

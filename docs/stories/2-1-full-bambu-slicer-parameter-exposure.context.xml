@@ -1,0 +1,266 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>1</storyId>
+    <title>Full Bambu Slicer Parameter Exposure</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-01</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/story-2-1-2025-11-01.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>print farm operator</asA>
+    <iWant>access to all Bambu Slicer parameters in the configuration UI</iWant>
+    <soThat>I can test any setting variation without limitation</soThat>
+    <tasks>
+      - Expand BambuParameters interface with Tier 1 essential parameters (15 parameters across Quality, Infill, Support, Speed, Temperature)
+      - Create ConfigurationForm UI with categorized parameter groups and collapsible sections
+      - Implement client-side validation for all parameters with helpful error messages
+      - Handle parameter dependencies in UI (enable/disable, cascading defaults, warnings)
+      - Create JSON settings file generator on backend using template approach
+      - Update bambu-cli service to use settings files via --load-settings parameter
+      - Implement configuration review display showing non-default values
+      - Update database schema verification for expanded parameters in JSONB column
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Configuration UI exposes all major Bambu Slicer parameters (print speed, temperature, retraction, cooling, etc.)
+    2. Parameters organized into logical categories (Quality, Speed, Support, Advanced)
+    3. Each parameter includes label, input field, and default value
+    4. Parameter validation prevents invalid values with helpful error messages
+    5. UI remains usable despite expanded parameter set (collapsible sections, search/filter)
+    6. All parameters correctly passed to Bambu CLI during slicing
+    7. Configuration can be reviewed before execution showing all non-default values
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Decision Architecture</title>
+        <section>Implementation Patterns - CLI Invocation Pattern</section>
+        <snippet>Defines the mandatory pattern for all Bambu CLI invocations: spawn() with argument array, never shell execution, 5-minute timeout, path sanitization with path.resolve()</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Decision Architecture</title>
+        <section>Consistency Rules - Naming Conventions</section>
+        <snippet>TypeScript interface naming (PascalCase), parameter naming (camelCase), file naming (kebab-case), type definitions location (src/shared/types.ts)</snippet>
+      </doc>
+      <doc>
+        <path>docs/BAMBU_PARAMETERS.md</path>
+        <title>Bambu Slicer Parameter Catalog</title>
+        <section>Tier 1: Essential Parameters (Story 2.1 MVP)</section>
+        <snippet>Complete specification of 15 essential parameters: Quality (layer_height, wall_loops, shell_layers), Infill (density, pattern), Support (enable, type, threshold), Speed (wall/infill speeds), Temperature (nozzle_temperature). Includes validation ranges, defaults, and impact ratings.</snippet>
+      </doc>
+      <doc>
+        <path>docs/BAMBU_PARAMETERS.md</path>
+        <title>Bambu Slicer Parameter Catalog</title>
+        <section>Settings File Format - Process Settings JSON Format</section>
+        <snippet>JSON schema for Bambu process settings: required fields (type, name, from, compatible_printers), parameter value format (string arrays), inheritance model, CLI usage via --load-settings flag</snippet>
+      </doc>
+      <doc>
+        <path>docs/BAMBU_PARAMETERS.md</path>
+        <title>Bambu Slicer Parameter Catalog</title>
+        <section>Implementation Notes - Validation Approach</section>
+        <snippet>Client-side and server-side validation patterns, dependency handling (support enable/disable, layer height cascade), UI state management examples</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 2.1: Full Bambu Slicer Parameter Exposure</section>
+        <snippet>Epic-level requirements for parameter exposure, UI organization into categories, validation requirements, CLI integration expectations</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRESET_SCHEMA.md</path>
+        <title>Preset Schema Documentation</title>
+        <section>JSON Structure</section>
+        <snippet>Additional details on preset file structure, inheritance chains, printer compatibility declarations</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <file>
+        <path>src/server/services/bambu-cli.ts</path>
+        <kind>service</kind>
+        <symbol>BambuCliOptions</symbol>
+        <lines>18-31</lines>
+        <reason>Current parameter interface - Story 2.1 must expand this to include Tier 1 parameters</reason>
+      </file>
+      <file>
+        <path>src/server/services/bambu-cli.ts</path>
+        <kind>service</kind>
+        <symbol>createSettingsFile</symbol>
+        <lines>45-61</lines>
+        <reason>Settings file generation function - Story 2.1 must enhance this to use proper JSON template approach per BAMBU_PARAMETERS.md</reason>
+      </file>
+      <file>
+        <path>src/server/services/bambu-cli.ts</path>
+        <kind>service</kind>
+        <symbol>invokeBambuSlicer</symbol>
+        <lines>70-99</lines>
+        <reason>Main CLI invocation function - Story 2.1 must update to pass settings file via --load-settings parameter</reason>
+      </file>
+      <file>
+        <path>src/utils/validation.ts</path>
+        <kind>utility</kind>
+        <symbol>existing validation utilities</symbol>
+        <lines>all</lines>
+        <reason>Story 2.1 will extend this with parameter-specific validation rules from BAMBU_PARAMETERS.md Tier 1 specifications</reason>
+      </file>
+      <file>
+        <path>src/client/components/FileUpload.tsx</path>
+        <kind>component</kind>
+        <symbol>FileUpload</symbol>
+        <lines>all</lines>
+        <reason>Reference for React component patterns, Tailwind styling, validation display patterns to follow in ConfigurationForm</reason>
+      </file>
+      <file>
+        <path>src/types/database.ts</path>
+        <kind>types</kind>
+        <symbol>database types</symbol>
+        <lines>all</lines>
+        <reason>Contains configurations table type - Story 2.1 must verify JSONB parameters column supports all Tier 1 fields</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <frontend>
+        <package name="react" version="^19.1.1">Component framework</package>
+        <package name="react-dom" version="^19.1.1">React rendering</package>
+        <package name="react-router-dom" version="^7.9.5">Routing</package>
+        <package name="react-dropzone" version="^14.3.8">File upload UI</package>
+        <package name="tailwindcss" version="^4.0.0">Styling framework</package>
+      </frontend>
+      <backend>
+        <package name="express" version="^5.1.0">Web server framework</package>
+        <package name="@supabase/supabase-js" version="^2.78.0">Database client</package>
+        <package name="p-limit" version="^7.2.0">Concurrency control</package>
+        <package name="multer" version="^2.0.2">File upload handling</package>
+        <package name="dotenv" version="^17.2.3">Environment variables</package>
+        <package name="uuid" version="^13.0.0">ID generation</package>
+      </backend>
+      <testing>
+        <package name="vitest" version="^4.0.5">Test framework</package>
+        <package name="@testing-library/react" version="^16.3.0">Component testing</package>
+        <package name="@testing-library/jest-dom" version="^6.9.1">DOM matchers</package>
+        <package name="@testing-library/user-event" version="^14.6.1">User interaction testing</package>
+      </testing>
+      <dev>
+        <package name="typescript" version="~5.9.3">Type system</package>
+        <package name="vite" version="^7.1.7">Build tool</package>
+        <package name="tsx" version="^4.20.6">TypeScript execution</package>
+      </dev>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <architectural>
+      - **CLI Invocation Security**: MUST use spawn() with argument array, NEVER shell execution (architecture.md lines 220-301)
+      - **File Path Sanitization**: ALL file paths MUST be sanitized with path.resolve() before CLI invocation
+      - **Timeout Enforcement**: CLI operations MUST timeout after 5 minutes per ADR-005
+      - **Settings File Approach**: Use template-based JSON generation with required fields (type, name, from, compatible_printers) per BAMBU_PARAMETERS.md
+    </architectural>
+    <patterns>
+      - **Component Organization**: Feature-based frontend components in src/client/components/
+      - **Type Definitions**: Shared types in src/shared/types.ts for client/server communication
+      - **Naming Convention**: kebab-case files, PascalCase components, camelCase functions/variables
+      - **Validation Pattern**: Client-side validation in UI + server-side validation before CLI invocation
+    </patterns>
+    <quality>
+      - **Parameter Validation**: Each Tier 1 parameter MUST have range validation per BAMBU_PARAMETERS.md specifications
+      - **Dependency Handling**: UI MUST disable dependent parameters when parent parameter is false/disabled
+      - **Error Messages**: Validation errors MUST be user-friendly and actionable, not raw CLI errors
+      - **Backward Compatibility**: Expanded parameters MUST remain compatible with Story 1.5 basic parameters
+    </quality>
+    <testing>
+      - **Unit Tests Required**: Test JSON generation, validation logic, parameter dependency handling
+      - **Integration Tests Required**: Test full workflow (UI → JSON → CLI → G-code)
+      - **Test Location**: Co-located with source files (.test.ts suffix)
+    </testing>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>BambuCliOptions</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface BambuCliOptions {
+  inputFile: string;
+  outputFile: string;
+  layerHeight: number;
+  infillDensity: number;
+  supportType: 'none' | 'normal' | 'tree';
+  printerModel: 'X1_Carbon' | 'P1P' | 'P1S' | 'A1_Mini';
+  // STORY 2.1: Must expand with Tier 1 parameters
+  // Quality: initial_layer_height, wall_loops, top_shell_layers, bottom_shell_layers
+  // Infill: sparse_infill_pattern
+  // Support: enable_support, support_threshold_angle
+  // Speed: outer_wall_speed, inner_wall_speed, sparse_infill_speed, initial_layer_speed
+  // Temperature: nozzle_temperature (already exists, verify)
+}
+      </signature>
+      <path>src/server/services/bambu-cli.ts</path>
+    </interface>
+    <interface>
+      <name>Bambu Process Settings JSON</name>
+      <kind>External CLI interface</kind>
+      <signature>
+{
+  "type": "process",
+  "name": "Configuration Name",
+  "from": "user",
+  "inherits": "fdm_process_single_0.20",
+  "setting_id": "USER_timestamp",
+  "layer_height": ["0.2"],
+  "sparse_infill_density": ["20%"],
+  "wall_loops": ["3"],
+  "enable_support": ["1"],
+  "support_type": ["tree"],
+  "outer_wall_speed": ["200"],
+  // ... all Tier 1 parameters as string arrays
+  "compatible_printers": ["Bambu Lab X1 Carbon 0.4 nozzle", "Bambu Lab P1S 0.4 nozzle"]
+}
+      </signature>
+      <path>Passed to CLI via --load-settings parameter</path>
+    </interface>
+    <interface>
+      <name>Configuration Database Schema</name>
+      <kind>Supabase JSONB column</kind>
+      <signature>
+configurations table:
+  - id: UUID
+  - session_id: UUID (FK)
+  - name: TEXT
+  - parameters: JSONB  -- Story 2.1: Verify supports all Tier 1 fields
+  - processing_status: TEXT
+  - error_message: TEXT
+      </signature>
+      <path>Supabase database, src/types/database.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing follows Vitest + React Testing Library patterns. Unit tests co-located with source (.test.ts suffix). Integration tests verify end-to-end workflows. Component tests use React Testing Library for UI interactions. All tests use TypeScript with strict typing. Story 2.1 must test: (1) JSON settings file generation with all Tier 1 parameters, (2) Parameter validation rules, (3) Dependency handling (enable/disable, cascading defaults), (4) CLI invocation with --load-settings flag, (5) Configuration review display accuracy.
+    </standards>
+    <locations>
+      - Co-located unit tests: src/**/*.test.ts, src/**/*.test.tsx
+      - Integration tests: tests/ directory
+      - Component tests: src/client/components/**/*.test.tsx
+    </locations>
+    <ideas>
+      <test ac="1" desc="Verify all 15 Tier 1 parameters exposed in UI">Unit test ConfigurationForm component renders all parameter groups (Quality, Infill, Support, Speed, Temperature) with correct input fields</test>
+      <test ac="2" desc="Verify logical category organization">Component test that collapsible sections work and parameters are grouped correctly</test>
+      <test ac="3" desc="Verify labels, inputs, and defaults">Unit test each parameter has correct label text, input type, and default value matching BAMBU_PARAMETERS.md specifications</test>
+      <test ac="4" desc="Verify parameter validation">Unit tests for validation rules: layer_height range (0.08-0.36), infill_density (0-100%), wall_loops (min 2, integer), speed parameters (reasonable ranges), temperature (material-specific)</test>
+      <test ac="4" desc="Verify helpful error messages">Component test that validation errors display user-friendly messages, not technical errors</test>
+      <test ac="5" desc="Verify UI remains usable with expanded parameters">Component test that collapsible sections collapse/expand correctly, UI doesn't overflow or become unusable</test>
+      <test ac="6" desc="Verify CLI parameter passing">Integration test: Create configuration with all Tier 1 parameters → Generate JSON settings file → Verify JSON structure → Invoke CLI with --load-settings → Verify G-code generated</test>
+      <test ac="6" desc="Verify settings file cleanup">Unit test that temporary settings files are deleted after slicing completes or fails</test>
+      <test ac="7" desc="Verify configuration review display">Component test that review display shows all non-default parameter values grouped by category before slicing starts</test>
+    </ideas>
+  </tests>
+</story-context>

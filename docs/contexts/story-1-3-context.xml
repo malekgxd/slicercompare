@@ -1,0 +1,492 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  STORY CONTEXT: Story 1.3 - Bambu Slicer CLI Integration Spike
+  Generated: 2025-10-31
+  Epic: Epic 1 - SlicerCompare Foundation & Core Workflow
+
+  This context EXTENDS epic-1-context.xml with story-specific details.
+  Always load epic context first, then merge with this story context.
+-->
+<story-context>
+  <story-metadata>
+    <story-id>1.3</story-id>
+    <story-title>Bambu Slicer CLI Integration Spike</story-title>
+    <epic-id>1</epic-id>
+    <epic-context-path>docs/contexts/epic-1-context.xml</epic-context-path>
+    <story-type>technical-spike</story-type>
+    <estimated-effort>2-4 hours</estimated-effort>
+    <time-box>4 hours maximum</time-box>
+    <created>2025-10-31</created>
+    <status>Draft</status>
+  </story-metadata>
+
+  <inherit-epic-context>
+    <path>docs/contexts/epic-1-context.xml</path>
+    <sections-to-inherit>
+      <section>technology-stack</section>
+      <section>architecture-patterns</section>
+      <section>architectural-constraints</section>
+      <section>naming-conventions</section>
+      <section>project-structure</section>
+      <section>security-guidelines</section>
+      <section>testing-standards</section>
+    </sections-to-inherit>
+  </inherit-epic-context>
+
+  <story-specific-context>
+    <goal>
+      Validate Bambu Slicer CLI capabilities, parameter control, and error handling to inform
+      robust batch slicing engine design (Story 1.6) with predictable behavior and accurate metric extraction.
+    </goal>
+
+    <spike-objectives>
+      <objective priority="critical">Prove CLI can be invoked from Node.js with child_process.spawn()</objective>
+      <objective priority="critical">Validate parameter passing for layer height, infill, supports, printer profile</objective>
+      <objective priority="critical">Define output parsing strategy for extracting slicing metrics</objective>
+      <objective priority="critical">Document error handling approach for CLI failures</objective>
+      <objective priority="high">Establish performance baselines for small/medium/large STL files</objective>
+      <objective priority="high">Test concurrency constraints (parallel CLI processes)</objective>
+      <objective priority="high">Validate integration with Story 1.2 Supabase Storage download workflow</objective>
+      <objective priority="medium">Document CLI installation and environment setup</objective>
+    </spike-objectives>
+
+    <acceptance-criteria>
+      <criterion id="AC1">
+        <description>Bambu Slicer CLI successfully invoked from Node.js using child_process.spawn()</description>
+        <validation>Process launches without errors, CLI version detection succeeds within 5 seconds, stdout/stderr captured</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC2">
+        <description>Test slicing operation completes with sample STL file (20x20x20mm calibration cube) within 60 seconds</description>
+        <validation>Sample file slices successfully, exit code 0, output file exists and is >1KB</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC3">
+        <description>CLI parameter passing validated for critical parameters</description>
+        <parameters>
+          <param>Layer height: 0.1mm, 0.2mm, 0.28mm</param>
+          <param>Infill density: 15%, 20%, 30%</param>
+          <param>Support type: normal, tree, disabled</param>
+          <param>Printer profile: Bambu Lab X1 Carbon, P1P, etc.</param>
+        </parameters>
+        <validation>Parameters reflected in output G-code metadata, output differs based on parameter values</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC4">
+        <description>G-code output file generated in temp directory with valid headers and readable content</description>
+        <validation>File path matches expected pattern, file has read permissions, contains valid G-code headers (;FLAVOR:, ;TIME:, etc.)</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC5">
+        <description>Output parsing strategy defined for extracting metrics</description>
+        <metrics-to-extract>
+          <metric>Print time (seconds)</metric>
+          <metric>Filament usage (grams + length in mm)</metric>
+          <metric>Support material usage (if applicable)</metric>
+          <metric>Layer count</metric>
+          <metric>Layer height used</metric>
+          <metric>Infill percentage used</metric>
+        </metrics-to-extract>
+        <validation>Regex patterns documented, proof-of-concept parsing function created, fallback behavior defined</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC6">
+        <description>Error handling approach documented for CLI failures</description>
+        <error-scenarios>
+          <scenario>CLI not found/not installed</scenario>
+          <scenario>Invalid STL file format</scenario>
+          <scenario>Unsupported parameter values</scenario>
+          <scenario>Timeout during slicing</scenario>
+          <scenario>Insufficient disk space</scenario>
+          <scenario>Process interruption (SIGTERM/SIGKILL)</scenario>
+        </error-scenarios>
+        <validation>Detection method documented for each error, recovery strategy defined, user-facing error messages drafted</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC7">
+        <description>Spike findings documented with code examples and recommendations</description>
+        <document-sections>
+          <section>CLI invocation examples (Node.js code snippets)</section>
+          <section>Parameter passing examples</section>
+          <section>Output parsing examples with sample G-code</section>
+          <section>Error handling code examples</section>
+          <section>Performance observations and baselines</section>
+          <section>Recommendations for Story 1.6 batch engine design</section>
+          <section>Known limitations and workarounds</section>
+        </document-sections>
+        <validation>Markdown document created at /docs/spikes/story-1-3-bambu-cli-integration.md</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC8">
+        <description>Integration with Story 1.2 validated: download file from Supabase Storage, slice, cleanup</description>
+        <validation>File downloaded to temp directory, CLI slicing succeeds with downloaded file, temp file cleanup documented</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC9">
+        <description>Concurrency constraints documented</description>
+        <validation>Parallel CLI process capability tested, file locking requirements documented, resource limits identified</validation>
+        <priority>should-have</priority>
+      </criterion>
+
+      <criterion id="AC10">
+        <description>Investigation time-boxed to 4 hours maximum with findings document completed</description>
+        <validation>Spike findings document completed within time box, blockers noted if encountered</validation>
+        <priority>must-have</priority>
+      </criterion>
+    </acceptance-criteria>
+
+    <implementation-approach>
+      <phase name="setup">
+        <task>Install or verify Bambu Studio CLI availability</task>
+        <task>Document CLI location and PATH configuration requirements</task>
+        <task>Create proof-of-concept Node.js script structure</task>
+        <task>Obtain sample STL files (small, medium, large)</task>
+        <estimated-time>30 minutes</estimated-time>
+      </phase>
+
+      <phase name="basic-invocation">
+        <task>Invoke CLI with minimal parameters using child_process.spawn()</task>
+        <task>Capture stdout/stderr output</task>
+        <task>Verify CLI version detection</task>
+        <task>Execute basic slicing with default parameters</task>
+        <estimated-time>30 minutes</estimated-time>
+      </phase>
+
+      <phase name="parameter-testing">
+        <task>Test layer height variations (0.1mm, 0.2mm, 0.28mm)</task>
+        <task>Test infill density variations (15%, 20%, 30%)</task>
+        <task>Test support type options (normal, tree, disabled)</task>
+        <task>Test printer profile selection</task>
+        <task>Verify parameters reflected in G-code output</task>
+        <estimated-time>60 minutes</estimated-time>
+      </phase>
+
+      <phase name="parsing-strategy">
+        <task>Analyze G-code comment format and metadata location</task>
+        <task>Document regex patterns for each metric</task>
+        <task>Create proof-of-concept parsing function</task>
+        <task>Test parsing with multiple output files</task>
+        <estimated-time>45 minutes</estimated-time>
+      </phase>
+
+      <phase name="error-testing">
+        <task>Test each identified error scenario</task>
+        <task>Document error detection methods and exit codes</task>
+        <task>Define user-facing error messages</task>
+        <estimated-time>30 minutes</estimated-time>
+      </phase>
+
+      <phase name="integration-validation">
+        <task>Download file from Supabase Storage to temp directory</task>
+        <task>Pass temp file path to CLI</task>
+        <task>Document cleanup strategy</task>
+        <estimated-time>20 minutes</estimated-time>
+      </phase>
+
+      <phase name="performance-testing">
+        <task>Measure slicing time for 3 file sizes</task>
+        <task>Test parallel CLI processes</task>
+        <task>Document memory/CPU usage</task>
+        <estimated-time>30 minutes</estimated-time>
+      </phase>
+
+      <phase name="documentation">
+        <task>Create spike findings document</task>
+        <task>Include all code examples and observations</task>
+        <task>Provide Story 1.6 design recommendations</task>
+        <estimated-time>45 minutes</estimated-time>
+      </phase>
+    </implementation-approach>
+
+    <test-cases>
+      <test-case id="TC1">
+        <description>CLI invocation with minimal parameters</description>
+        <preconditions>Bambu Studio CLI installed and in PATH</preconditions>
+        <steps>
+          <step>Create Node.js script using child_process.spawn()</step>
+          <step>Invoke CLI with version flag</step>
+          <step>Capture stdout output</step>
+        </steps>
+        <expected-result>CLI version string returned, exit code 0</expected-result>
+        <priority>critical</priority>
+      </test-case>
+
+      <test-case id="TC2">
+        <description>Basic STL slicing with default parameters</description>
+        <preconditions>Sample STL file (20x20x20mm cube) available</preconditions>
+        <steps>
+          <step>Invoke CLI with input file path and output directory</step>
+          <step>Wait for process completion (max 60 seconds)</step>
+          <step>Verify output G-code file exists</step>
+        </steps>
+        <expected-result>G-code file created, file size >1KB, exit code 0</expected-result>
+        <priority>critical</priority>
+      </test-case>
+
+      <test-case id="TC3">
+        <description>Layer height parameter variation</description>
+        <preconditions>CLI invocation working (TC1, TC2 pass)</preconditions>
+        <steps>
+          <step>Slice same STL with layer height 0.1mm</step>
+          <step>Slice same STL with layer height 0.2mm</step>
+          <step>Parse both G-code outputs for layer count</step>
+        </steps>
+        <expected-result>0.1mm produces ~2x more layers than 0.2mm, metadata reflects layer height</expected-result>
+        <priority>high</priority>
+      </test-case>
+
+      <test-case id="TC4">
+        <description>Infill density parameter variation</description>
+        <preconditions>CLI invocation working</preconditions>
+        <steps>
+          <step>Slice with infill 15%</step>
+          <step>Slice with infill 30%</step>
+          <step>Parse both G-code outputs for filament usage</step>
+        </steps>
+        <expected-result>30% infill uses more filament than 15%, metadata reflects infill density</expected-result>
+        <priority>high</priority>
+      </test-case>
+
+      <test-case id="TC5">
+        <description>Support type parameter variation</description>
+        <preconditions>CLI invocation working, STL file requiring supports</preconditions>
+        <steps>
+          <step>Slice with supports disabled</step>
+          <step>Slice with normal supports</step>
+          <step>Slice with tree supports</step>
+          <step>Compare G-code outputs for support material</step>
+        </steps>
+        <expected-result>Disabled = no support material, normal and tree have support material, metadata reflects support type</expected-result>
+        <priority>high</priority>
+      </test-case>
+
+      <test-case id="TC6">
+        <description>G-code metadata parsing</description>
+        <preconditions>G-code output file from TC2 available</preconditions>
+        <steps>
+          <step>Read G-code file</step>
+          <step>Apply regex patterns to extract print time</step>
+          <step>Apply regex patterns to extract filament usage</step>
+          <step>Apply regex patterns to extract other metrics</step>
+        </steps>
+        <expected-result>All required metrics extracted successfully, numeric values validated</expected-result>
+        <priority>critical</priority>
+      </test-case>
+
+      <test-case id="TC7">
+        <description>CLI not found error handling</description>
+        <preconditions>CLI path temporarily removed from PATH or renamed</preconditions>
+        <steps>
+          <step>Attempt to invoke CLI</step>
+          <step>Capture error (ENOENT or similar)</step>
+        </steps>
+        <expected-result>Error detected, user-friendly message generated (e.g., "Bambu Slicer CLI not found")</expected-result>
+        <priority>high</priority>
+      </test-case>
+
+      <test-case id="TC8">
+        <description>Invalid STL file error handling</description>
+        <preconditions>Empty or corrupted STL file created</preconditions>
+        <steps>
+          <step>Attempt to slice invalid file</step>
+          <step>Capture CLI error output and exit code</step>
+        </steps>
+        <expected-result>Non-zero exit code, error message indicates invalid file, user-friendly message generated</expected-result>
+        <priority>high</priority>
+      </test-case>
+
+      <test-case id="TC9">
+        <description>Supabase Storage integration</description>
+        <preconditions>Story 1.2 upload flow working, file in Supabase Storage</preconditions>
+        <steps>
+          <step>Get file path from uploaded_files table</step>
+          <step>Download file from Supabase Storage to temp directory</step>
+          <step>Invoke CLI with temp file path</step>
+          <step>Verify slicing succeeds</step>
+          <step>Cleanup temp file</step>
+        </steps>
+        <expected-result>File downloaded successfully, CLI processes temp file, cleanup removes temp file</expected-result>
+        <priority>critical</priority>
+      </test-case>
+
+      <test-case id="TC10">
+        <description>Parallel CLI process execution</description>
+        <preconditions>Multiple STL files or configurations available</preconditions>
+        <steps>
+          <step>Launch 3 CLI processes simultaneously</step>
+          <step>Monitor for file collisions or errors</step>
+          <step>Measure total execution time vs sequential</step>
+        </steps>
+        <expected-result>All processes complete successfully, parallel execution ~3x faster than sequential (or document limitations)</expected-result>
+        <priority>high</priority>
+      </test-case>
+
+      <test-case id="TC11">
+        <description>Performance baseline for different file sizes</description>
+        <preconditions>Small (~50KB), medium (~1MB), large (~5MB) STL files available</preconditions>
+        <steps>
+          <step>Slice small file, measure time and memory</step>
+          <step>Slice medium file, measure time and memory</step>
+          <step>Slice large file, measure time and memory</step>
+        </steps>
+        <expected-result>Slicing times documented, memory usage documented, performance bottlenecks identified</expected-result>
+        <priority>medium</priority>
+      </test-case>
+    </test-cases>
+
+    <files-to-create>
+      <file>
+        <path>docs/spikes/story-1-3-bambu-cli-integration.md</path>
+        <type>documentation</type>
+        <purpose>Spike findings document with code examples and recommendations</purpose>
+        <priority>critical</priority>
+      </file>
+
+      <file>
+        <path>src/server/services/bambu-cli-poc.ts</path>
+        <type>proof-of-concept</type>
+        <purpose>Proof-of-concept CLI invocation script (NOT production code)</purpose>
+        <priority>high</priority>
+        <note>This is for documentation only, production implementation in Story 1.6</note>
+      </file>
+
+      <file optional="true">
+        <path>test-files/calibration-cube-20mm.stl</path>
+        <type>test-data</type>
+        <purpose>Sample STL file for testing (20x20x20mm calibration cube)</purpose>
+        <priority>high</priority>
+      </file>
+    </files-to-create>
+
+    <dependencies>
+      <dependency>
+        <story-id>1.1</story-id>
+        <story-title>Project Setup & Infrastructure</story-title>
+        <status>completed</status>
+        <provides>Node.js environment, TypeScript configuration, project structure</provides>
+      </dependency>
+
+      <dependency optional="true">
+        <story-id>1.2</story-id>
+        <story-title>Single File Upload with Storage</story-title>
+        <status>ready-for-review</status>
+        <provides>Supabase Storage integration for file download testing (AC8)</provides>
+        <note>Spike can run without this, but AC8 validates integration</note>
+      </dependency>
+    </dependencies>
+
+    <enables-stories>
+      <story id="1.6">
+        <title>Batch Slicing Engine</title>
+        <how-spike-informs>
+          - CLI invocation approach and code patterns
+          - Parameter passing strategy (flags vs config files)
+          - Error handling patterns for each failure scenario
+          - Concurrency constraints and resource limits
+          - Performance expectations for batch processing
+          - Output parsing implementation details
+        </how-spike-informs>
+      </story>
+
+      <story id="1.7">
+        <title>Results Parser & Storage</title>
+        <how-spike-informs>
+          - G-code metadata format and location
+          - Regex patterns for metric extraction
+          - Fallback behavior for missing metadata
+        </how-spike-informs>
+      </story>
+    </enables-stories>
+
+    <architectural-decisions>
+      <decision id="spike-decision-1">
+        <question>Which Node.js child_process API should we use?</question>
+        <options>
+          <option>spawn() - streaming, more control</option>
+          <option>exec() - simpler, buffered output</option>
+          <option>execFile() - like exec but no shell</option>
+        </options>
+        <recommendation>Test all three, document pros/cons, recommend best for Story 1.6</recommendation>
+      </decision>
+
+      <decision id="spike-decision-2">
+        <question>How should parameters be passed to CLI?</question>
+        <options>
+          <option>CLI flags only (--layer-height 0.2)</option>
+          <option>JSON config file</option>
+          <option>Hybrid approach (CLI flags + config file)</option>
+        </options>
+        <recommendation>Test available methods, recommend most reliable and maintainable</recommendation>
+      </decision>
+
+      <decision id="spike-decision-3">
+        <question>Can we run multiple CLI processes in parallel?</question>
+        <options>
+          <option>Yes, with file locking or unique temp directories</option>
+          <option>No, must use queue for sequential processing</option>
+          <option>Limited parallelism (e.g., max 3 concurrent)</option>
+        </options>
+        <recommendation>Test concurrent execution, document limitations and recommended approach</recommendation>
+      </decision>
+
+      <decision id="spike-decision-4">
+        <question>How should we handle temp file cleanup?</question>
+        <options>
+          <option>Immediate cleanup after slicing</option>
+          <option>Deferred cleanup (cron job or scheduled task)</option>
+          <option>Keep temp files for debugging</option>
+        </options>
+        <recommendation>Test cleanup timing, recommend strategy balancing disk space and debugging needs</recommendation>
+      </decision>
+    </architectural-decisions>
+
+    <risk-assessment>
+      <risk level="high">
+        <description>Bambu Slicer CLI may not be available or documented</description>
+        <mitigation>Research CLI availability early in spike, document installation requirements, identify alternative approaches if CLI not suitable</mitigation>
+        <impact-on-epic>Could require architectural pivot to different slicing approach</impact-on-epic>
+      </risk>
+
+      <risk level="medium">
+        <description>CLI parameter syntax may be undocumented or inconsistent</description>
+        <mitigation>Test parameter variations extensively, document working examples, identify parameter validation issues early</mitigation>
+        <impact-on-epic>May limit parameter exposure in Story 1.5, require UI constraints</impact-on-epic>
+      </risk>
+
+      <risk level="medium">
+        <description>G-code metadata format may vary or be unreliable</description>
+        <mitigation>Test with multiple configurations, document metadata variations, define fallback parsing strategy</mitigation>
+        <impact-on-epic>May require alternative metric extraction in Story 1.7</impact-on-epic>
+      </risk>
+
+      <risk level="low">
+        <description>CLI performance may not meet 5-minute batch target</description>
+        <mitigation>Measure performance baselines, test concurrency, identify bottlenecks, recommend optimizations</mitigation>
+        <impact-on-epic>May require Story 2.5 performance optimization earlier in schedule</impact-on-epic>
+      </risk>
+
+      <risk level="low">
+        <description>Spike time-box may be insufficient (4 hours)</description>
+        <mitigation>Prioritize must-have acceptance criteria, document blockers if encountered, extend time-box only if critical questions unanswered</mitigation>
+        <impact-on-epic>May require follow-up spike or Story 1.6 design adjustments</impact-on-epic>
+      </risk>
+    </risk-assessment>
+
+    <success-criteria>
+      <criterion>All 10 acceptance criteria met or documented as blocked</criterion>
+      <criterion>Spike findings document completed with actionable recommendations</criterion>
+      <criterion>Story 1.6 design questions answered with confidence</criterion>
+      <criterion>Identified risks have mitigation strategies</criterion>
+      <criterion>Performance baselines established for batch engine design</criterion>
+      <criterion>Integration with Story 1.2 validated or documented as blocked</criterion>
+    </success-criteria>
+  </story-specific-context>
+</story-context>

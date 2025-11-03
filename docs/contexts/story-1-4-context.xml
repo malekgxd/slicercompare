@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  STORY CONTEXT: Story 1.4 - Configuration Data Model
+  Generated: 2025-10-31
+  Epic: Epic 1 - SlicerCompare Foundation & Core Workflow
+
+  This context EXTENDS epic-1-context.xml with story-specific details.
+  Always load epic context first, then merge with this story context.
+-->
+<story-context>
+  <story-metadata>
+    <story-id>1.4</story-id>
+    <story-title>Configuration Data Model</story-title>
+    <epic-id>1</epic-id>
+    <epic-context-path>docs/contexts/epic-1-context.xml</epic-context-path>
+    <story-type>infrastructure</story-type>
+    <estimated-effort>3-4 hours</estimated-effort>
+    <created>2025-10-31</created>
+    <status>Draft</status>
+  </story-metadata>
+
+  <inherit-epic-context>
+    <path>docs/contexts/epic-1-context.xml</path>
+    <sections-to-inherit>
+      <section>technology-stack</section>
+      <section>architecture-patterns</section>
+      <section>architectural-constraints</section>
+      <section>naming-conventions</section>
+      <section>project-structure</section>
+      <section>security-guidelines</section>
+    </sections-to-inherit>
+  </inherit-epic-context>
+
+  <story-specific-context>
+    <goal>
+      Create comprehensive Supabase database schema for storing configurations and comparison sessions,
+      enabling persistent data across user sessions and supporting batch slicing workflow (Story 1.6).
+    </goal>
+
+    <acceptance-criteria>
+      <criterion id="AC1">
+        <description>Supabase tables created with proper schema</description>
+        <tables>
+          <table>comparison_sessions</table>
+          <table>configurations</table>
+          <table>results</table>
+        </tables>
+        <validation>Tables exist in Supabase with correct schema, constraints, and indexes</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC2">
+        <description>Schema supports 2-3 configurations per session</description>
+        <validation>Constraint enforces maximum 3 active configurations per session</validation>
+        <implementation>Partial unique index on session_id WHERE is_active = true</implementation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC3">
+        <description>Configuration parameters stored as JSONB with validated structure</description>
+        <validation>JSONB field stores complex parameter objects, schema validation implemented</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC4">
+        <description>Foreign key relationships established</description>
+        <relationships>
+          <relationship>configurations.session_id → comparison_sessions.session_id (CASCADE)</relationship>
+          <relationship>configurations.input_file_id → uploaded_files.id (SET NULL)</relationship>
+          <relationship>results.session_id → comparison_sessions.session_id (CASCADE)</relationship>
+          <relationship>results.config_id → configurations.config_id (SET NULL)</relationship>
+        </relationships>
+        <validation>Foreign key constraints enforce referential integrity, cascade behavior works correctly</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC5">
+        <description>Row-level security (RLS) policies implemented</description>
+        <validation>Users can only access their own sessions/configurations/results, RLS blocks cross-user access</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC6">
+        <description>CRUD operations tested through Supabase JavaScript client</description>
+        <validation>All create, read, update, delete operations execute successfully for all tables</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC7">
+        <description>Database migrations version controlled</description>
+        <validation>Migration files exist in supabase/migrations/, numbered sequentially, idempotent</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC8">
+        <description>Test data seeded for development</description>
+        <validation>Seed script creates realistic test data (3 sessions, 6 configs, 10 results)</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC9">
+        <description>Parameter schema defined as JSON Schema artifact</description>
+        <validation>schema/config-parameters.schema.json exists with complete parameter definitions</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC10">
+        <description>Result data structure defined with sample JSON</description>
+        <validation>schema/result-data.schema.json exists with metrics structure</validation>
+        <priority>must-have</priority>
+      </criterion>
+
+      <criterion id="AC11">
+        <description>Schema documentation complete</description>
+        <validation>docs/DATABASE.md exists with ER diagram, table descriptions, query examples</validation>
+        <priority>must-have</priority>
+      </criterion>
+    </acceptance-criteria>
+
+    <database-schema>
+      <table name="comparison_sessions">
+        <description>User comparison projects/sessions</description>
+        <columns>
+          <column name="session_id" type="UUID" constraint="PRIMARY KEY DEFAULT gen_random_uuid()"/>
+          <column name="user_id" type="UUID" constraint="NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE"/>
+          <column name="session_name" type="VARCHAR(255)" constraint="NULL"/>
+          <column name="status" type="VARCHAR(50)" constraint="DEFAULT 'active' CHECK (status IN ('active', 'completed', 'archived'))"/>
+          <column name="created_at" type="TIMESTAMP" constraint="NOT NULL DEFAULT NOW()"/>
+          <column name="updated_at" type="TIMESTAMP" constraint="NOT NULL DEFAULT NOW()"/>
+        </columns>
+        <indexes>
+          <index>idx_sessions_user_id ON (user_id)</index>
+          <index>idx_sessions_status ON (status)</index>
+          <index>idx_sessions_created_at ON (created_at DESC)</index>
+        </indexes>
+        <rls-policy>Users can only access sessions where user_id = auth.uid()</rls-policy>
+      </table>
+
+      <table name="configurations">
+        <description>Slicer configurations to compare</description>
+        <columns>
+          <column name="config_id" type="UUID" constraint="PRIMARY KEY DEFAULT gen_random_uuid()"/>
+          <column name="session_id" type="UUID" constraint="NOT NULL REFERENCES comparison_sessions(session_id) ON DELETE CASCADE"/>
+          <column name="input_file_id" type="UUID" constraint="REFERENCES uploaded_files(id) ON DELETE SET NULL"/>
+          <column name="config_name" type="VARCHAR(255)" constraint="NOT NULL"/>
+          <column name="parameters" type="JSONB" constraint="NOT NULL"/>
+          <column name="is_active" type="BOOLEAN" constraint="DEFAULT true"/>
+          <column name="created_at" type="TIMESTAMP" constraint="NOT NULL DEFAULT NOW()"/>
+          <column name="updated_at" type="TIMESTAMP" constraint="NOT NULL DEFAULT NOW()"/>
+        </columns>
+        <indexes>
+          <index>idx_configs_session_id ON (session_id)</index>
+          <index>idx_configs_input_file_id ON (input_file_id)</index>
+        </indexes>
+        <constraints>
+          <constraint>Maximum 3 active configurations per session (partial unique index)</constraint>
+        </constraints>
+        <rls-policy>Users can only access configurations in their own sessions</rls-policy>
+      </table>
+
+      <table name="results">
+        <description>Slicing operation results</description>
+        <columns>
+          <column name="result_id" type="UUID" constraint="PRIMARY KEY DEFAULT gen_random_uuid()"/>
+          <column name="session_id" type="UUID" constraint="NOT NULL REFERENCES comparison_sessions(session_id) ON DELETE CASCADE"/>
+          <column name="config_id" type="UUID" constraint="REFERENCES configurations(config_id) ON DELETE SET NULL"/>
+          <column name="result_data" type="JSONB" constraint="NULL"/>
+          <column name="status" type="VARCHAR(50)" constraint="DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed'))"/>
+          <column name="completed_at" type="TIMESTAMP" constraint="NULL"/>
+          <column name="error_message" type="TEXT" constraint="NULL"/>
+          <column name="created_at" type="TIMESTAMP" constraint="NOT NULL DEFAULT NOW()"/>
+        </columns>
+        <indexes>
+          <index>idx_results_session_id ON (session_id)</index>
+          <index>idx_results_config_id ON (config_id)</index>
+          <index>idx_results_status ON (status)</index>
+        </indexes>
+        <rls-policy>Users can only access results in their own sessions</rls-policy>
+      </table>
+    </database-schema>
+
+    <parameter-schema>
+      <description>Configuration parameters based on Story 1.3 CLI spike findings</description>
+      <required-fields>
+        <field name="layer_height" type="number" range="0.05-0.4" unit="mm"/>
+        <field name="infill_density" type="integer" range="0-100" unit="%"/>
+        <field name="support_type" type="enum" values="none, normal, tree"/>
+        <field name="printer_model" type="enum" values="X1_Carbon, P1P, P1S, A1_Mini"/>
+      </required-fields>
+      <optional-fields>
+        <field name="print_speed" type="number" range="50-500" unit="mm/s"/>
+        <field name="nozzle_temperature" type="integer" range="180-300" unit="°C"/>
+      </optional-fields>
+      <validation-strategy>Application-level validation before insert, JSONB accepts any valid JSON</validation-strategy>
+    </parameter-schema>
+
+    <result-schema>
+      <description>Result data structure from G-code parsing (Story 1.7)</description>
+      <required-fields>
+        <field name="print_time_seconds" type="integer" unit="seconds"/>
+        <field name="filament_usage_grams" type="number" unit="grams"/>
+        <field name="layer_count" type="integer"/>
+        <field name="gcode_file_path" type="string" description="Path in Supabase Storage"/>
+      </required-fields>
+      <optional-fields>
+        <field name="filament_usage_mm" type="number" unit="mm"/>
+        <field name="support_material_grams" type="number" unit="grams"/>
+        <field name="parsed_at" type="string" format="ISO 8601"/>
+      </optional-fields>
+    </result-schema>
+
+    <implementation-approach>
+      <phase name="schema-definition">
+        <tasks>
+          <task>Create parameter schema JSON file</task>
+          <task>Create result schema JSON file</task>
+          <task>Document schema decisions in DATABASE.md</task>
+        </tasks>
+        <estimated-time>30 minutes</estimated-time>
+      </phase>
+
+      <phase name="migration-creation">
+        <tasks>
+          <task>Create comparison_sessions migration with RLS</task>
+          <task>Create configurations migration with constraints and RLS</task>
+          <task>Create results migration with RLS</task>
+          <task>Test migration idempotency</task>
+        </tasks>
+        <estimated-time>60 minutes</estimated-time>
+      </phase>
+
+      <phase name="crud-testing">
+        <tasks>
+          <task>Write CRUD tests for comparison_sessions</task>
+          <task>Write CRUD tests for configurations</task>
+          <task>Write CRUD tests for results</task>
+          <task>Test RLS policy enforcement</task>
+          <task>Test foreign key cascades</task>
+        </tasks>
+        <estimated-time>60 minutes</estimated-time>
+      </phase>
+
+      <phase name="seed-data">
+        <tasks>
+          <task>Create seed script with realistic test data</task>
+          <task>Include sample configurations from Story 1.3</task>
+          <task>Document seed script usage</task>
+        </tasks>
+        <estimated-time>30 minutes</estimated-time>
+      </phase>
+
+      <phase name="documentation">
+        <tasks>
+          <task>Create DATABASE.md with ER diagram</task>
+          <task>Document query patterns for Story 1.5 and 1.6</task>
+          <task>Document RLS policies and access control</task>
+          <task>Create migration README</task>
+        </tasks>
+        <estimated-time>45 minutes</estimated-time>
+      </phase>
+    </implementation-approach>
+
+    <files-to-create>
+      <file>
+        <path>supabase/migrations/20251031_comparison_sessions.sql</path>
+        <type>migration</type>
+        <priority>critical</priority>
+      </file>
+      <file>
+        <path>supabase/migrations/20251031_configurations.sql</path>
+        <type>migration</type>
+        <priority>critical</priority>
+      </file>
+      <file>
+        <path>supabase/migrations/20251031_results.sql</path>
+        <type>migration</type>
+        <priority>critical</priority>
+      </file>
+      <file>
+        <path>supabase/seed.sql</path>
+        <type>seed-data</type>
+        <priority>high</priority>
+      </file>
+      <file>
+        <path>schema/config-parameters.schema.json</path>
+        <type>json-schema</type>
+        <priority>critical</priority>
+      </file>
+      <file>
+        <path>schema/result-data.schema.json</path>
+        <type>json-schema</type>
+        <priority>critical</priority>
+      </file>
+      <file>
+        <path>docs/DATABASE.md</path>
+        <type>documentation</type>
+        <priority>high</priority>
+      </file>
+      <file>
+        <path>supabase/migrations/README.md</path>
+        <type>documentation</type>
+        <priority>medium</priority>
+      </file>
+    </files-to-create>
+
+    <dependencies>
+      <dependency>
+        <story-id>1.1</story-id>
+        <story-title>Project Setup & Infrastructure</story-title>
+        <status>completed</status>
+        <provides>Supabase connection, project structure</provides>
+      </dependency>
+
+      <dependency>
+        <story-id>1.2</story-id>
+        <story-title>Single File Upload with Storage</story-title>
+        <status>ready-for-review</status>
+        <provides>uploaded_files table for foreign key linkage</provides>
+      </dependency>
+
+      <dependency>
+        <story-id>1.3</story-id>
+        <story-title>Bambu Slicer CLI Integration Spike</story-title>
+        <status>ready-for-review</status>
+        <provides>Parameter requirements, result metrics definition</provides>
+      </dependency>
+    </dependencies>
+
+    <enables-stories>
+      <story id="1.5">
+        <title>Simple Configuration UI</title>
+        <how-schema-enables>
+          - UI reads/writes configurations via Supabase client
+          - Query patterns documented for listing sessions and configs
+          - Parameter schema defines form validation rules
+          - RLS ensures multi-user data isolation
+        </how-schema-enables>
+      </story>
+
+      <story id="1.6">
+        <title>Batch Slicing Engine</title>
+        <how-schema-enables>
+          - Engine queries configurations for batch processing
+          - Creates pending results before slicing
+          - Updates result status during processing
+          - Stores parsed metrics in result_data JSONB
+        </how-schema-enables>
+      </story>
+
+      <story id="1.7">
+        <title>Results Parser & Storage</title>
+        <how-schema-enables>
+          - Parser populates result_data with metrics
+          - Result schema defines expected structure
+          - Status lifecycle supports parsing workflow
+        </how-schema-enables>
+      </story>
+    </enables-stories>
+
+    <integration-points>
+      <integration name="story-1-2-file-linkage">
+        <description>Configurations reference uploaded files</description>
+        <foreign-key>configurations.input_file_id → uploaded_files.id (SET NULL)</foreign-key>
+        <behavior>File deletion preserves configuration with NULL file reference</behavior>
+      </integration>
+
+      <integration name="supabase-auth">
+        <description>All tables integrate with Supabase Auth for RLS</description>
+        <user-id-column>comparison_sessions.user_id → auth.users(id)</user-id-column>
+        <rls-function>auth.uid() returns current authenticated user</rls-function>
+      </integration>
+    </integration-points>
+
+    <testing-strategy>
+      <unit-tests>
+        <test>Create session with valid data</test>
+        <test>Create configuration with JSONB parameters</test>
+        <test>Create result with pending status</test>
+        <test>Update configuration parameters</test>
+        <test>Update result status to completed</test>
+        <test>Delete session (verify cascade)</test>
+        <test>JSONB parameter validation</test>
+      </unit-tests>
+
+      <integration-tests>
+        <test>Full workflow: create session → add configs → generate results</test>
+        <test>File deletion → config.input_file_id set to NULL</test>
+        <test>Session deletion → all configs and results deleted</test>
+        <test>Config deletion → results.config_id set to NULL</test>
+        <test>RLS enforcement across multiple users</test>
+      </integration-tests>
+
+      <manual-tests>
+        <test>Verify tables in Supabase Studio</test>
+        <test>Run seed script and inspect data</test>
+        <test>Test RLS with different auth tokens</test>
+        <test>Query performance with 1000+ records</test>
+      </manual-tests>
+    </testing-strategy>
+
+    <success-criteria>
+      <criterion>All 11 acceptance criteria met</criterion>
+      <criterion>Migrations run successfully on fresh Supabase project</criterion>
+      <criterion>All CRUD operations tested and passing</criterion>
+      <criterion>RLS policies enforce data isolation</criterion>
+      <criterion>Seed data provides realistic test environment</criterion>
+      <criterion>Documentation enables Story 1.5 and 1.6 to proceed</criterion>
+    </success-criteria>
+  </story-specific-context>
+</story-context>
