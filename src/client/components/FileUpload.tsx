@@ -116,165 +116,277 @@ export default function FileUpload({ onUploadSuccess, onUploadError }: FileUploa
 
   return (
     <div className="w-full">
-      {/* Upload Zone - Compact & High Contrast */}
+      {/* Upload Card */}
       {!uploadedFile && (
         <div
-          {...getRootProps()}
-          role="button"
-          aria-label="Upload 3D model file. Drag and drop or click to browse."
-          tabIndex={0}
-          className={`
-            border-2 border-dashed rounded-lg p-3 cursor-pointer
-            transition-all duration-200
-            ${!isDragActive && !error ? 'hover:scale-[1.005]' : ''}
-            ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
-          `}
-          style={{
-            borderColor: isDragActive ? '#3b82f6' : error ? '#ef4444' : '#475569',
-            borderStyle: isDragActive ? 'solid' : 'dashed',
-            backgroundColor: isDragActive
-              ? 'rgba(59, 130, 246, 0.15)'
-              : error
-                ? 'rgba(239, 68, 68, 0.15)'
-                : '#1e293b'  /* card background for visual consistency */
-          }}
+          className="rounded-lg p-6 shadow-sm"
+          style={{ backgroundColor: 'var(--color-background-secondary)' }}
         >
-          <input {...getInputProps()} disabled={isUploading} />
-
-          <div className="flex items-center gap-2">
-            {/* Icon - Tiny */}
-            <svg
-              className="h-4 w-4 flex-shrink-0"
-              style={{
-                color: isDragActive ? '#60a5fa' : error ? '#fca5a5' : '#94a3b8'
-              }}
-              stroke="currentColor"
-              fill="none"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
+          {/* Card Header */}
+          <div className="flex items-center gap-3 mb-4">
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: 'var(--color-primary-600)' }}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-              />
-            </svg>
+              <svg
+                className="w-6 h-6"
+                style={{ color: 'var(--color-text-inverse)' }}
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--color-text-primary)' }}>
+                Upload 3D Model
+              </h3>
+              <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                STL or 3MF file (max 100MB)
+              </p>
+            </div>
+          </div>
 
-            {/* Text - Very Compact */}
-            <div className="flex-1 min-w-0">
+          {/* Dropzone Area */}
+          <div
+            {...getRootProps()}
+            role="button"
+            aria-label="Upload 3D model file. Drag and drop or click to browse."
+            tabIndex={0}
+            className={`
+              border-2 border-dashed rounded-lg p-8 cursor-pointer
+              transition-all duration-200
+              ${!isDragActive && !error ? 'hover:scale-[1.01]' : ''}
+              ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
+            `}
+            style={{
+              borderColor: isDragActive
+                ? 'var(--color-primary-400)'
+                : error
+                  ? 'var(--color-error-400)'
+                  : 'var(--color-border)',
+              borderStyle: isDragActive ? 'solid' : 'dashed',
+              backgroundColor: isDragActive
+                ? 'var(--dropzone-bg-active)'
+                : error
+                  ? 'var(--color-error-50)'
+                  : 'var(--dropzone-bg-default)',
+            }}
+          >
+            <input {...getInputProps()} disabled={isUploading} />
+
+            <div className="flex flex-col items-center justify-center text-center">
+              {/* Icon */}
+              <div
+                className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                style={{
+                  backgroundColor: isDragActive
+                    ? 'var(--color-primary-100)'
+                    : error
+                      ? 'var(--color-error-100)'
+                      : 'var(--color-neutral-700)',
+                }}
+              >
+                <svg
+                  className="w-8 h-8"
+                  style={{
+                    color: isDragActive
+                      ? 'var(--color-primary-600)'
+                      : error
+                        ? 'var(--color-error-600)'
+                        : 'var(--color-text-tertiary)',
+                  }}
+                  stroke="currentColor"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                  />
+                </svg>
+              </div>
+
+              {/* Text */}
               {isDragActive ? (
-                <p className="text-xs font-medium" style={{ color: '#60a5fa' }}>
-                  Drop file here...
-                </p>
+                <div>
+                  <p
+                    className="text-base font-semibold mb-1"
+                    style={{ color: 'var(--color-primary-600)' }}
+                  >
+                    Drop file here
+                  </p>
+                  <p className="text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                    Release to upload
+                  </p>
+                </div>
               ) : isUploading ? (
-                <p className="text-xs font-medium" style={{ color: '#e2e8f0' }}>
-                  Uploading...
-                </p>
+                <div>
+                  <LoadingSpinner size="md" />
+                  <p
+                    className="text-base font-semibold mt-3"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Uploading file...
+                  </p>
+                </div>
               ) : (
-                <p className="text-xs font-medium" style={{ color: '#e2e8f0' }}>
-                  Drag STL or 3MF file here, or click to browse <span style={{ color: '#94a3b8' }}>(max 100MB)</span>
-                </p>
+                <div>
+                  <p
+                    className="text-base font-semibold mb-1"
+                    style={{ color: 'var(--color-text-primary)' }}
+                  >
+                    Drag & drop your 3D model here
+                  </p>
+                  <p className="text-sm mb-3" style={{ color: 'var(--color-text-secondary)' }}>
+                    or click to browse files
+                  </p>
+                  <div
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium"
+                    style={{
+                      backgroundColor: 'var(--color-primary-600)',
+                      color: 'var(--color-text-inverse)',
+                    }}
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                      />
+                    </svg>
+                    Choose File
+                  </div>
+                  <p className="text-xs mt-3" style={{ color: 'var(--color-text-tertiary)' }}>
+                    Supported formats: STL, 3MF (max 100MB)
+                  </p>
+                </div>
               )}
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Loading State */}
-      {isUploading && (
-        <div className="mt-4">
-          <LoadingSpinner size="md" message="Uploading file..." />
-        </div>
-      )}
-
-      {/* Error Message - High Contrast */}
-      {error && !isUploading && (
-        <div
-          role="alert"
-          className="mt-4 p-4 rounded-lg"
-          style={{
-            backgroundColor: 'var(--color-error-bg)',
-            border: '1px solid var(--color-error-border)'
-          }}
-        >
-          <div className="flex items-start gap-3">
-            <svg
-              className="h-5 w-5 flex-shrink-0"
-              style={{ color: 'var(--color-error-text)' }}
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          {/* Error Message */}
+          {error && !isUploading && (
+            <div
+              role="alert"
+              className="mt-4 p-4 rounded-lg"
+              style={{
+                backgroundColor: 'var(--color-error-50)',
+                border: '1px solid var(--color-error-200)',
+              }}
             >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <div className="flex-1">
-              <p className="text-sm font-medium" style={{ color: 'var(--color-error-text)' }}>
-                Upload Failed
-              </p>
-              <p className="text-sm mt-1" style={{ color: '#e2e8f0' }}>
-                {error}
-              </p>
-              <button
-                onClick={() => setError(null)}
-                className="text-sm mt-2 underline"
-                style={{ color: 'var(--color-error-text)' }}
-              >
-                Try Again
-              </button>
+              <div className="flex items-start gap-3">
+                <svg
+                  className="h-5 w-5 flex-shrink-0"
+                  style={{ color: 'var(--color-error-600)' }}
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <p
+                    className="text-sm font-medium"
+                    style={{ color: 'var(--color-error-700)' }}
+                  >
+                    Upload Failed
+                  </p>
+                  <p className="text-sm mt-1" style={{ color: 'var(--color-error-700)' }}>
+                    {error}
+                  </p>
+                  <button
+                    onClick={() => setError(null)}
+                    className="text-sm mt-2 font-medium underline hover:no-underline"
+                    style={{ color: 'var(--color-error-600)' }}
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* Success Message - High Contrast */}
+      {/* Success Card */}
       {uploadedFile && !isUploading && (
         <div
-          role="status"
-          aria-live="polite"
-          className="mt-4 p-4 rounded-lg flex items-center justify-between gap-4"
+          className="rounded-lg p-6 shadow-sm"
           style={{
-            backgroundColor: 'var(--color-success-bg)',
-            border: '1px solid var(--color-success-border)'
+            backgroundColor: 'var(--color-success-50)',
+            border: '2px solid var(--color-success-300)',
           }}
         >
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <svg
-              className="h-6 w-6 flex-shrink-0"
-              style={{ color: 'var(--color-success-text)' }}
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
+          <div className="flex items-start gap-4">
+            {/* Success Icon */}
+            <div
+              className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: 'var(--color-success-500)' }}
             >
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
+              <svg
+                className="h-6 w-6"
+                style={{ color: 'var(--color-text-inverse)' }}
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+
+            {/* File Info */}
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate" style={{ color: '#f1f5f9' }}>
+              <h4
+                className="text-base font-semibold mb-1"
+                style={{ color: 'var(--color-success-900)' }}
+              >
+                File Uploaded Successfully
+              </h4>
+              <p
+                className="text-base font-medium truncate mb-1"
+                style={{ color: 'var(--color-success-800)' }}
+              >
                 {uploadedFile.filename}
               </p>
-              <p className="text-sm" style={{ color: '#cbd5e1' }}>
-                {(uploadedFile.fileSize / 1024 / 1024).toFixed(2)} MB
+              <p className="text-sm" style={{ color: 'var(--color-success-700)' }}>
+                {(uploadedFile.fileSize / 1024 / 1024).toFixed(2)} MB • {uploadedFile.mimeType}
+              </p>
+              <p className="text-xs mt-2" style={{ color: 'var(--color-success-600)' }}>
+                Uploaded {new Date(uploadedFile.uploadedAt).toLocaleString()}
               </p>
             </div>
+
+            {/* Upload Another Button */}
+            <button
+              onClick={() => setUploadedFile(null)}
+              className="px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0 hover:opacity-90"
+              style={{
+                backgroundColor: 'var(--color-success-600)',
+                color: 'var(--color-text-inverse)',
+              }}
+            >
+              Upload Another
+            </button>
           </div>
-          <button
-            onClick={() => setUploadedFile(null)}
-            className="px-4 py-2 rounded-lg text-sm font-medium transition-colors flex-shrink-0"
-            style={{
-              backgroundColor: '#22c55e',
-              color: '#ffffff'
-            }}
-          >
-            Upload Another
-          </button>
         </div>
       )}
     </div>

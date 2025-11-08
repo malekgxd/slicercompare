@@ -435,34 +435,36 @@ export default function SessionDetailPage() {
                 </div>
               </div>
             )}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="flex gap-4 overflow-x-auto pb-2">
               {configurations.map(config => {
                 // Find matching slicing result for this configuration
                 const result = slicingResults.find(r => r.configurationId === config.config_id)
                 const status = result?.status || 'queued'
 
                 return (
-                  <ConfigurationProgressCard
-                    key={config.config_id}
-                    configuration={config}
-                    status={status}
-                    errorMessage={result?.errorMessage}
-                  />
+                  <div key={config.config_id} className="flex-shrink-0 w-80">
+                    <ConfigurationProgressCard
+                      configuration={config}
+                      status={status}
+                      errorMessage={result?.errorMessage}
+                    />
+                  </div>
                 )
               })}
             </div>
           </div>
         ) : (
-          // Show normal cards when not processing
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          // Show normal cards when not processing - horizontal layout
+          <div className="flex gap-6 overflow-x-auto pb-4">
             {configurations.map(config => (
-              <ConfigurationCard
-                key={config.config_id}
-                configuration={config}
-                onEdit={handleEditConfiguration}
-                onDelete={handleDeleteClick}
-                onDuplicate={handleDuplicateConfiguration}
-              />
+              <div key={config.config_id} className="flex-shrink-0 w-96">
+                <ConfigurationCard
+                  configuration={config}
+                  onEdit={handleEditConfiguration}
+                  onDelete={handleDeleteClick}
+                  onDuplicate={handleDuplicateConfiguration}
+                />
+              </div>
             ))}
           </div>
         )}

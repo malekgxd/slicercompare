@@ -197,7 +197,7 @@ export function ConfigurationFormModal({
       <div className="flex min-h-full items-center justify-center p-4">
         <div
           ref={formRef}
-          className="relative transform overflow-hidden rounded-lg bg-[var(--color-background-primary)] text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl animate-fade-in"
+          className="relative transform rounded-lg bg-[var(--color-background-primary)] text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl animate-fade-in max-h-[90vh] flex flex-col"
         >
           {/* Header */}
           <div className="bg-[var(--color-background-primary)] px-6 py-4 border-b border-[var(--color-neutral-300)]">
@@ -221,7 +221,7 @@ export function ConfigurationFormModal({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="bg-[var(--color-background-primary)] px-6 py-6">
+          <form onSubmit={handleSubmit} className="bg-[var(--color-background-primary)] px-6 py-6 overflow-y-auto flex-1">
             <div className="space-y-6">
               {/* Configuration Name */}
               <ConfigurationNameInput
@@ -343,12 +343,12 @@ export function ConfigurationFormModal({
             </div>
 
             {/* Actions */}
-            <div className="mt-8 flex gap-3 justify-end">
+            <div className="mt-8 flex gap-3 justify-end border-t border-[var(--color-neutral-600)] pt-4 bg-[var(--color-bg-card)] -mx-6 px-6 -mb-6 pb-6">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={isSaving}
-                className="px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] bg-[var(--color-background-primary)] border border-[var(--color-neutral-400)] rounded-lg hover:bg-[var(--color-background-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-[var(--color-text-body)] bg-[var(--color-neutral-700)] border border-[var(--color-neutral-600)] rounded-lg hover:bg-[var(--color-neutral-600)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-500)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

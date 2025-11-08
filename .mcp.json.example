@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "serena": {
+      "type": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "serena-ai-mcp@latest"
+      ]
+    },
+    "chrome-devtools": {
+      "type": "stdio",
+      "command": "npx.cmd",
+      "args": [
+        "-y",
+        "chrome-devtools-mcp@latest",
+        "--isolated"
+      ]
+    },
+    "zen": {
+      "type": "stdio",
+      "command": "bash",
+      "args": [
+        "-c",
+        "for p in $(which uvx 2>/dev/null) $HOME/.local/bin/uvx /opt/homebrew/bin/uvx /usr/local/bin/uvx uvx; do [ -x \"$p\" ] && exec \"$p\" --from git+https://github.com/BeehiveInnovations/zen-mcp-server.git zen-mcp-server; done; echo 'uvx not found' >&2; exit 1"
+      ],
+      "env": {
+        "PATH": "/home/dpmal/miniconda/bin:/usr/local/bin:/usr/bin:/bin:/opt/homebrew/bin:~/.local/bin",
+        "DEFAULT_MODEL": "auto",
+        "DISABLED_TOOLS": "analyze,refactor,testgen,secaudit,docgen,tracer",
+        "OPENAI_API_KEY": "your-openai-api-key-here",
+        "GEMINI_API_KEY": "your-gemini-api-key-here"
+      }
+    }
+  }
+}
